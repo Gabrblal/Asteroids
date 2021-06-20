@@ -1,0 +1,31 @@
+{
+    "env": {
+    },
+    "configurations": [
+        {
+            "name": "Linux",
+            "intelliSenseMode": "linux-gcc-x64",
+            "cStandard": "gnu17",
+            "includePath": [
+                "${workspaceFolder}/lib/CSFML/include"
+            ],
+        },
+        {
+            "name": "Mac",
+            "intelliSenseMode": "macos-clang-x64",
+            "cStandard": "gnu17",
+            "includePath": [
+                "${workspaceFolder}/lib/CSFML/include"
+            ]
+        },
+        {
+            "name": "Win32",
+            "intelliSenseMode": "windows-msvc-x64",
+            "cStandard": "gnu17",
+            "includePath": [
+                "${workspaceFolder}/lib/CSFML/include"
+            ]
+        }
+    ],
+    "version": 4
+}
