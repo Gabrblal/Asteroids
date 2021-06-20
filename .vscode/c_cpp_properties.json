@@ -8,7 +8,7 @@
             "cStandard": "gnu17",
             "includePath": [
                 "${workspaceFolder}/lib/CSFML/include"
-            ],
+            ]
         },
         {
             "name": "Mac",
