@@ -259,21 +259,41 @@ bool list_insert(List *list, size_t index, void *element)
     return true;
 }
 
-bool list_find(List *list, void *element, bool(*func)(void*))
+bool list_find(List *list, void **element, bool(*func)(void*))
 {
     if (!list || !func)
         return false;
 
+    // Loop through all nodes and check if the function returns true for each
+    // node element.
     Node *node = list->head;
     while (node) {
         if (func(node->element)) {
-            memcpy(element, node->element, list->size);
+
+            // Set element to point to this nodes' element, if element exists.
+            if (element)
+                *element = node->element;
             return true;
         }
         node = node->next;
     }
 
     return false;
+}
+
+bool list_apply(List *list, void(*func)(void*))
+{
+    if (!list || !func)
+        return false;
+
+    // Loop through all nodes and apply the function to each element.
+    Node *node = list->head;
+    while (node) {
+        func(node->element);
+        node = node->next;
+    }
+
+    return true;
 }
 
 void list_destroy(List *list)

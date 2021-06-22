@@ -148,13 +148,25 @@ bool list_insert(List *list, size_t index, void *element);
  * true.
  * 
  * @param list The pointer to the list to search.
- * @param element A pointer to an element to copy into the successful element,
- * if any.
+ * @param element A optional pointer to a pointer to an element, that is set to
+ * point to the found element on success. Ignored if NULL.
  * @param func The search function.
  * 
  * @returns If the element was found.
  */
-bool list_find(List *list, void *element, bool(*func)(void*));
+bool list_find(List *list, void **element, bool(*func)(void*));
+
+/**
+ * Apply a function to all elements in the list from front to back.
+ * 
+ * @param list The pointer to the list to search.
+ * @param element A pointer to an element to copy into the successful element,
+ * if any.
+ * @param func The search function.
+ * 
+ * @returns If the function was applied to all elements.
+ */
+bool list_apply(List *list, void(*func)(void*));
 
 /**
  * Destroy a list. Using the list after calling this function on it is

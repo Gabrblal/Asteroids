@@ -13,7 +13,7 @@ dependencies = [
 # All the source files that end in '.c' in alphabetical order.
 source = files([
     'src/main.c',
-    'src/list.c'
+    'src/util/list.c'
 ])
 
 include = [
