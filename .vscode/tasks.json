@@ -15,8 +15,16 @@
 			"type": "shell",
 			"problemMatcher":"$gcc",
 			"command": "meson compile",
+			"presentation": {
+				"echo": true,
+				"reveal": "always",
+				"focus": true,
+				"panel": "dedicated",
+				"showReuseMessage": true,
+				"clear": true
+			},
 			"options": {
-				"cwd": "${workspaceFolder}/bin"
+				"cwd": "${workspaceFolder}/bin",
 			},
 		},
 		{
@@ -50,37 +58,6 @@
 				"csfml-audio-2.dll",
 				"csfml-network-2.dll",
 			],
-		},
-		// {
-		// 	"label": "Astroids: Build (Debug)",
-		// 	"type": "cppbuild",
-		// 	"command": "gcc",
-		// 	"args": [
-		// 		"-g",
-		// 		"src/*",
-		// 		"-I",
-		// 		"lib/CSFML/include",
-		// 		"-L",
-		// 		"lib/CSFML/lib/gcc",
-		// 		"-static",
-		// 		"-lcsfml-graphics",
-		// 		"-lcsfml-system",
-		// 		"-lcsfml-window",
-		// 		"-static-libgcc",
-		// 		"-Wall",
-		// 		"-o",
-		// 		"${workspaceFolder}/bin/astroids.exe"
-		// 	],
-		// 	"options": {
-		// 		"cwd": "${workspaceFolder}"
-		// 	},
-		// 	"group": {
-        //         "kind": "build",
-        //         "isDefault": true
-        //     },
-		// 	"problemMatcher": [
-		// 		"$gcc"
-		// 	],
-		// }
+		}
 	]
 }
