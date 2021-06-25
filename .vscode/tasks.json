@@ -6,15 +6,14 @@
 			"type": "shell",
 			"problemMatcher": "",
 			"command": "Asteroids.exe",
-			"options": {
-				"cwd": "${workspaceFolder}/bin"
-			},
+			"linux": { "command": "./Asteroids" },
+			"windows": { "command": "Asteroids.exe" },
+			"options": { "cwd": "${workspaceFolder}/bin" },
 		},
 		{
 			"label": "Asteroids: Compile",
 			"type": "shell",
 			"problemMatcher":"$gcc",
-			"command": "meson compile",
 			"presentation": {
 				"echo": true,
 				"reveal": "always",
@@ -23,41 +22,17 @@
 				"showReuseMessage": true,
 				"clear": true
 			},
-			"options": {
-				"cwd": "${workspaceFolder}/bin",
-			},
+			"options": { "cwd": "${workspaceFolder}/scripts" },
+			"windows": { "command": "compile.bat", },
+			"linux"  : { "command": "compile.bash" }
 		},
 		{
 			"label": "Asteroids: Configure Build Directory",
 			"type": "shell",
 			"problemMatcher": "",
-			"command": "meson setup bin",
-			"dependsOrder": "sequence",
-			"dependsOn": [
-				"Asteroids: Clean Build Directory",
-				"Asteroids: Copy DLLs"
-			],
-		},
-		{
-			"label": "Asteroids: Clean Build Directory",
-			"type": "shell",
-			"problemMatcher": "",
-			"command": "meson setup --wipe bin",
-		},
-		{
-			"label": "Asteroids: Copy DLLs",
-			"type": "shell",
-			"problemMatcher": "",
-			"command": "robocopy",
-			"args": [
-				"${workspaceFolder}/lib/CSFML/bin",
-				"${workspaceFolder}/bin",
-				"csfml-window-2.dll",
-				"csfml-graphics-2.dll",
-				"csfml-system-2.dll",
-				"csfml-audio-2.dll",
-				"csfml-network-2.dll",
-			],
+			"options": { "cwd": "${workspaceFolder}/scripts" },
+			"windows": { "command": "configure.bat" },
+			"linux"  : { "command": "configure.bash"}
 		}
 	]
 }
