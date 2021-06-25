@@ -7,6 +7,7 @@
             "intelliSenseMode": "linux-gcc-x64",
             "cStandard": "gnu17",
             "includePath": [
+                "${workspaceFolder}/src",
                 "${workspaceFolder}/lib/SDL/include"
             ]
         },
@@ -15,6 +16,7 @@
             "intelliSenseMode": "macos-clang-x64",
             "cStandard": "gnu17",
             "includePath": [
+                "${workspaceFolder}/src",
                 "${workspaceFolder}/lib/SDL/include"
             ]
         },
@@ -23,6 +25,7 @@
             "intelliSenseMode": "windows-msvc-x64",
             "cStandard": "gnu17",
             "includePath": [
+                "${workspaceFolder}/src",
                 "${workspaceFolder}/lib/SDL/include"
             ]
         }
