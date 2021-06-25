@@ -6,7 +6,7 @@ findstr /R .*\.c$ > ../source.txt && cd ..
 @REM This also means we can't pipe files from findstr into gcc.
 powershell -c "(gc source.txt) -replace '\\', '\\' | Out-File -encoding ASCII 'source.txt'"
 
-gcc @source.txt -o bin/Asteroids.exe -static -static-libgcc ^
+gcc @source.txt -g -o bin/Asteroids.exe -static -static-libgcc ^
 -Ilib/SDL/include -Llib/SDL/lib ^
 -lmingw32 -lSDL2main -lSDL2 -mwindows -lm -ldinput8 -ldxguid -ldxerr8 ^
 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 ^
