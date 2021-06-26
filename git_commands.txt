@@ -1,0 +1,7 @@
+git add <file>
+
+# Add everything
+git add .
+
+# Open git message and commit
+git commit
