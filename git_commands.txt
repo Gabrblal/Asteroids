@@ -1,17 +1,45 @@
-git add <file>
+Updating:
+    + To check the status of the repository (branch, modified files, state):
+        - git status
+    + To get the updates on the current branch from github:
+        - git pull
 
-# Add everything
-git add .
+The git stash is a store of snapshots of unsaved changes to the repository.
+The unsaved changes can be stashed away, then reapplied later.
+    + To save all current changes without committing them:
+        - git stash save "name"
+    + To list all saved stashes
+        - git stash list
+    + To retrieve a bunch of changes, list the stashes and apply the one at 'n':
+        - git stash list
+        - git stash apply stash@{n}
+    + To delete a stash
+        - git stash -D "name"
 
-# Open git message and commit
-git commit
-git commit -m "message"
+Adding changes (staging them):
+    + To add one or more files:
+        - git add <file1> <file2> <...> <fileN>
+    + To add all changes
+        - git add .
 
-#create branch
-git branch <branch_name>
+Removing changes:
+    + To remove a file from staged:
+        - git reset <file>
+    + To remove all files from staged:
+        - git reset
 
-# Switch to branch
-git checkout <branch_name>
+Committing changes:
+    + To add change (commit) locally with text editor:
+        - git commit
+    + To add change (commit) locally on the command line:
+        - git commit -m "message"
+    + To add changes to github:
+        - git push
 
-# List all branches
-git branch -l
+Branches:
+    + To create a new branch, based on the branch you're currently on:
+        - git branch <branch_name>
+    + To check out a branch (see the code on a branch)
+        - git checkout <branch_name>
+    + To list all the branches
+        - git branch -l
