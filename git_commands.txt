@@ -5,3 +5,12 @@ git add .
 
 # Open git message and commit
 git commit
+
+#create branch
+git branch <branch_name>
+
+# Switch to branch
+git checkout <branch_name>
+
+# List all branches
+git branch -l
