@@ -66,9 +66,6 @@ int spin_thread(void *data)
 
         // Advance the model.
         spin_increment(spin);
-
-        // Delay to prevent a busy loop.
-        SDL_Delay(10);
     }
 }
 
