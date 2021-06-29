@@ -1,32 +1,81 @@
 #include "view.h"
 
-#include <stdint.h>
 #include <stdio.h>
 
 #include "spin/spin_view.h"
 
 /**
- * @private
+ * @struct View
+ * 
+ * Struct containing all data related to the view.
  */
 struct View {
+    // Main game window, used for making the renderer.
     SDL_Window *window;
+    // Renderer used to clear, draw and render the screen.
     SDL_Renderer *renderer;
+    // View mutex, to prevent data access during drawing, or concurrent drawing.
     SDL_mutex *mutex;
+    // Thread drawing to the window.
     SDL_Thread *thread;
+    // Condition variable to force a draw from controller, and to wait on to 
+    // prevent continuous draw calls that are resource intensive.
     SDL_cond *draw_condition;
+    // SDL timer that calls a callback to notify draw_condition, to draw to the 
+    // window at a desired rate (60Hz).
     SDL_TimerID framerate_timer;
+    // Pointer to the model to draw.
     Spin *spin;
+    // Mutex to stop the controller and view from accessing done concurrently.
     SDL_mutex *done_mutex;
+    // Flag to indicate that the view thread should terminate.
     bool done;
 };
 
-/**
- * @private
- * 
- * Checks if the current view has exited, and should be destroyed.
- * 
- * @return If the view should be exited.
- */
+uint32_t view_notify_callback(uint32_t interval, void *view)
+{
+    view_notify(view);
+    return interval;
+}
+
+View *view_create(SDL_Window *window, Spin *spin)
+{
+    // Prevent null pointers.
+    if (!window || !spin)
+        return NULL;
+
+    // Allocate memory for the View data structure.
+    View *view = malloc(sizeof(View));
+    if (!view) {
+        return NULL;
+    }
+
+    // Create the renderer.
+    view->renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    if (!view->renderer) {
+        printf("Failed to create SDL renderer: %s", SDL_GetError());
+        free(view);
+        return NULL;
+    }
+
+    // Populate the view data structure.
+    view->window = window;
+    view->mutex = SDL_CreateMutex();
+    view->draw_condition = SDL_CreateCond();
+    view->spin = spin;
+    view->done_mutex = SDL_CreateMutex();
+    view->done = false;
+
+    // Add a timer, that calls back to the view_notify_callback() function
+    // every 17 milliseconds (approximately 144Hz).
+    view->framerate_timer = SDL_AddTimer(7, view_notify_callback, view);
+
+    // Success! Start the drawing thread and return the view.
+    view->thread = SDL_CreateThread(view_thread, NULL, view);
+
+    return view;
+}
+
 bool view_done(View *view)
 {
     SDL_LockMutex(view->done_mutex);
@@ -38,13 +87,8 @@ bool view_done(View *view)
 
 void view_notify(View *view)
 {
+    // Signal view thread to draw.
     SDL_CondSignal(view->draw_condition);
-}
-
-uint32_t view_notify_callback(uint32_t interval, void *view)
-{
-    view_notify(view);
-    return interval;
 }
 
 int view_thread(void *data)
@@ -78,36 +122,6 @@ int view_thread(void *data)
     }
 
     return 0;
-}
-
-View *view_create(SDL_Window *window, Spin *spin)
-{
-    if (!window || !spin)
-        return NULL;
-
-    View *view = malloc(sizeof(View));
-    if (!view) {
-        return NULL;
-    }
-
-    view->renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (!view->renderer) {
-        printf("Failed to create SDL renderer: %s", SDL_GetError());
-        free(view);
-        return NULL;
-    }
-
-    view->window = window;
-    view->mutex = SDL_CreateMutex();
-    view->draw_condition = SDL_CreateCond();
-    view->framerate_timer = SDL_AddTimer(17, view_notify_callback, view);
-    view->spin = spin;
-    view->done_mutex = SDL_CreateMutex();
-    view->done = false;
-
-    view->thread = SDL_CreateThread(view_thread, NULL, view);
-    
-    return view;
 }
 
 void view_destroy(View *view)

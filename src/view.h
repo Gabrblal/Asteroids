@@ -1,19 +1,13 @@
 #ifndef VIEW_H
 #define VIEW_H
 
-#include <stdbool.h>
-
-#include "controller.h"
 #include "SDL2/SDL.h"
 #include "spin/spin.h"
 
-/**
- * Struct containing view related data.
- */
 typedef struct View View;
 
 /**
- * Create a view of the game, that periodically accesses the model and uses the
+ * Create a view of the game, that periodically accesses the model and uses the 
  * retrieved data to draw to the window.
  * 
  * @param window Pointer to the window to draw onto.
@@ -24,14 +18,37 @@ typedef struct View View;
 View *view_create(SDL_Window *window, Spin *spin);
 
 /**
- * Notifies the view that it should draw everything.
+ * Checks if the current view has exited. 
  * 
- * @param view The view to redraw.
+ * Thread safe. 
+ * 
+ * @return If the view should be exited.
+ */
+bool view_done(View *view);
+
+/**
+ * Signals the view to draw onto the window, if it is waiting to draw.
+ * 
+ * @param view The view to signal to draw.
  */
 void view_notify(View *view);
 
 /**
- * Deallocates a view.
+ * Thread function that runs to clear, draw and render to the view window. 
+ * 
+ * Draws the model to the window.
+ * 
+ * @param data Pointer to buffer (View object) to pass to the thread function.
+ */
+int view_thread(void *data);
+
+/**
+ * Terminates the running View thread, destroys view contents and deallocates
+ * the view. 
+ * 
+ * Using the view after calling this function is undefined.
+ * 
+ * @param view The view instance to destroy.
  */
 void view_destroy(View *view);
 
