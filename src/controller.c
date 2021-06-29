@@ -13,11 +13,14 @@
  * Struct containing all data related to the controller.
  */
 struct Controller {
-    SDL_Window *window; // Pointer to the main game window, used for retrieving
-                        // user events.
-    View *view;         // Pointer to the view instance
-    Spin *model;        // Pointer to the model
-    bool done;          // If the controller should exit or not.
+    // Main game window, used for retrieving user events.
+    SDL_Window *window;
+    // Pointer to the view of the model.
+    View *view;
+    // Pointer to the model.
+    Spin *model;
+    // If the controller should exit or not.
+    bool done;
 };
 
 Controller *controller_create()
