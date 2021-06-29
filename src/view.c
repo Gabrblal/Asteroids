@@ -2,8 +2,6 @@
 
 #include <stdio.h>
 
-#include "spin/spin_view.h"
-
 /**
  * @struct View
  * 
