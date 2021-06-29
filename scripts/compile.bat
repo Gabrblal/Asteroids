@@ -10,6 +10,14 @@ gcc @source.txt -g -o bin/Asteroids.exe -static -static-libgcc ^
 -Isrc -Ilib/SDL/include -Llib/SDL/lib ^
 -lmingw32 -lSDL2main -lSDL2 -mwindows -lm -ldinput8 -ldxguid -ldxerr8 ^
 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 ^
--lshell32 -lversion -luuid -lhid -lsetupapi
+-lshell32 -lversion -luuid -lhid -lsetupapi ^
+-Wall -Werror -Wpedantic
 
-del source.txt
+IF %errorlevel% NEQ 0 (
+    del source.txt
+    EXIT /B 1
+)
+ELSE (
+    del source.txt
+    EXIT /B 0
+)
