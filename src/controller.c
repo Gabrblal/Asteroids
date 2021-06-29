@@ -1,86 +1,24 @@
 #include "controller.h"
 
-#include "SDL2/SDL.h"
-#include "view.h"
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 
 #include "SDL2/SDL.h"
+#include "view.h"
+#include "spin/spin.h"
 
 /**
+ * @struct Controller
+ * 
  * Struct containing all data related to the controller.
  */
 struct Controller {
-    SDL_Window *window;    // Window the program is running in.
-    View *view;            // View of the model.
-    Spin *model;           // Model.
-    bool done;             // If the controller is done.
+    SDL_Window *window; // Pointer to the main game window, used for retrieving
+                        // user events.
+    View *view;         // Pointer to the view instance
+    Spin *model;        // Pointer to the model
+    bool done;          // If the controller should exit or not.
 };
-
-void controller_handle_key_up(SDL_Event *event)
-{
-
-}
-
-void controller_handle_key_down(SDL_Event *event)
-{
-
-}
-
-void controller_handle_mouse_up(SDL_Event *event)
-{
-
-}
-
-void controller_handle_mouse_down(SDL_Event *event)
-{
-
-}
-
-void controller_handle_mouse_wheel(SDL_Event *event)
-{
-
-}
-
-void controller_handle_mouse_motion(SDL_Event *event)
-{
-
-}
-
-void controller_handle_event(Controller *controller, SDL_Event *event)
-{
-    switch (event->type)
-    {
-        case SDL_KEYUP           : controller_handle_key_up(event); break;
-        case SDL_KEYDOWN         : controller_handle_key_down(event); break;
-        case SDL_MOUSEBUTTONUP   : controller_handle_mouse_up(event); break;
-        case SDL_MOUSEBUTTONDOWN : controller_handle_mouse_down(event); break;
-        case SDL_MOUSEWHEEL      : controller_handle_mouse_wheel(event); break;
-        case SDL_MOUSEMOTION     : controller_handle_mouse_motion(event); break;
-        case SDL_QUIT : {
-            controller->done = true;
-            break;
-        }
-        default: break;
-    }
-}
-
-void controller_thread(Controller *controller)
-{
-    SDL_Event event;
-    while (true) {
-
-        int timed_out = SDL_WaitEventTimeout(&event, 20);
-        if (!timed_out) {
-            controller_handle_event(controller, &event);
-        }
-
-        if (controller->done)
-            return;
-    }
-}
 
 Controller *controller_create()
 {
@@ -91,8 +29,8 @@ Controller *controller_create()
     SDL_Window *window = NULL;
     window = SDL_CreateWindow(
         "Asteroids",
-        600, 600,
-        600, 600,
+        600, 600, // Position of window (x, y)
+        600, 600, // Dimensions of window (width, height)
         SDL_WINDOW_RESIZABLE
     );
     if (!window) {
@@ -136,6 +74,67 @@ Controller *controller_create()
     return controller;
 }
 
+void controller_thread(Controller *controller)
+{
+    SDL_Event event;
+    while (true) {
+
+        // Wait for the next event, and timeout after 20ms to check if the
+        // controller should exit.
+        int timed_out = SDL_WaitEventTimeout(&event, 20);
+
+        // If the controller did not time out (it instead received an event)
+        // then handle the event.
+        if (!timed_out) {
+            controller_handle_event(controller, &event);
+        }
+
+        // If an event caused the controller to exit, then exit.
+        if (controller->done) {
+            return;
+        }
+    }
+}
+
+void controller_handle_event(Controller *controller, SDL_Event *event)
+{
+    // Jump to the function that handles the specific type of event.
+    switch (event->type)
+    {
+        case SDL_KEYUP           : controller_handle_key_up(controller, event); break;
+        case SDL_KEYDOWN         : controller_handle_key_down(controller, event); break;
+        case SDL_MOUSEBUTTONUP   : controller_handle_mouse_up(controller, event); break;
+        case SDL_MOUSEBUTTONDOWN : controller_handle_mouse_down(controller, event); break;
+        case SDL_MOUSEWHEEL      : controller_handle_mouse_wheel(controller, event); break;
+        case SDL_MOUSEMOTION     : controller_handle_mouse_motion(controller, event); break;
+        case SDL_QUIT : {
+            // No mutex required since only this thread has access to this
+            // variable.
+            controller->done = true;
+            break;
+        }
+        default: break;
+    }
+}
+
+void controller_handle_key_up(Controller *controller, SDL_Event *event)
+{}
+
+void controller_handle_key_down(Controller *controller, SDL_Event *event)
+{}
+
+void controller_handle_mouse_up(Controller *controller, SDL_Event *event)
+{}
+
+void controller_handle_mouse_down(Controller *controller, SDL_Event *event)
+{}
+
+void controller_handle_mouse_wheel(Controller *controller, SDL_Event *event)
+{}
+
+void controller_handle_mouse_motion(Controller *controller, SDL_Event *event)
+{}
+
 void controller_destroy(Controller *controller)
 {
     // Disregard null pointers.
@@ -147,5 +146,6 @@ void controller_destroy(Controller *controller)
     spin_destroy(controller->model);
     SDL_DestroyWindow(controller->window);
 
+    // Free controller memory.
     free(controller);
 }
