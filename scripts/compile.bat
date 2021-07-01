@@ -8,7 +8,7 @@ powershell -c "(gc source.txt) -replace '\\', '\\' | Out-File -encoding ASCII 's
 
 gcc @source.txt -g -o bin/Asteroids.exe -static -static-libgcc ^
 -Isrc -Ilib/SDL/include -Llib/SDL/lib ^
--lmingw32 -lSDL2main -lSDL2 -mwindows -lm -ldinput8 -ldxguid -ldxerr8 ^
+-lmingw32 -lSDL2main -lSDL2 -lm -ldinput8 -ldxguid -ldxerr8 ^
 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 ^
 -lshell32 -lversion -luuid -lhid -lsetupapi ^
 -Wall -Werror -Wpedantic
