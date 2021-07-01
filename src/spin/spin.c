@@ -1,6 +1,6 @@
 #include "spin/spin.h"
 
-#include <math.h>
+#include "SDL2/SDL.h"
 
 /**
  * Struct containing Spin related data. Spin is simply a model of a rotating
@@ -17,17 +17,17 @@ struct Spin {
     bool done;
 };
 
-Spin *spin_create(int x, int y, double R, double theta)
+Spin *spin_create(Vector2 p1, Vector2 p2, Vector2 p3)
 {
     // Allocate a buffer for the spin structure.
     Spin *spin = malloc(sizeof(Spin));
 
     // Set spin variables.
     spin->mutex = SDL_CreateMutex();
-    spin->data.x = x;
-    spin->data.y = y;
-    spin->data.R = R;
-    spin->data.theta = theta;
+    spin->data.p1 = p1;
+    spin->data.p2 = p2;
+    spin->data.p3 = p3;
+    spin->data.theta = 0;
     spin->done = false;
 
     // Create and start the model thread.
@@ -51,7 +51,7 @@ void spin_increment(Spin *spin)
 {
     // Lock access to the spin data and advance the model.
     SDL_LockMutex(spin->mutex);
-    spin->data.theta += 0.001;
+    spin->data.theta += 0.0000001;
     SDL_UnlockMutex(spin->mutex);
 }
 
@@ -78,19 +78,6 @@ SpinData spin_get(Spin *spin)
 
     return result;
 }
-
-void spin_view_update(SDL_Renderer *renderer, Spin *spin)
-{
-    SDL_LockMutex(spin->mutex);
-
-    int x = spin->data.x + spin->data.R * cos(spin->data.theta);
-    int y = spin->data.y + spin->data.R * sin(spin->data.theta);
-
-    SDL_RenderDrawLine(renderer, spin->data.x,  spin->data.y, x, y);
-
-    SDL_UnlockMutex(spin->mutex);
-}
-
 
 void spin_destroy(Spin *spin)
 {

@@ -3,15 +3,15 @@
 
 #include <stdbool.h>
 
-#include "SDL2/SDL.h"
+#include "util/vector2.h"
 
 /**
  * The possible state of the spinning line.
  */
 typedef struct {
-    int x; // Line begin x coordinate.
-    int y; // Line begin y coordinate.
-    double R; // Radius (length) of the circle made by the line.
+    Vector2 p1; // Line begin x coordinate.
+    Vector2 p2; // Line begin y coordinate.
+    Vector2 p3; // Line begin x coordinate.
     double theta; // Current angle of the line.
 } SpinData;
 
@@ -20,7 +20,7 @@ typedef struct Spin Spin;
 /**
  * Create a new spin instance.
  */
-Spin *spin_create(int x, int y, double R, double theta);
+Spin *spin_create(Vector2 p1, Vector2 p2, Vector2 p3);
 
 /**
  * Checks if the spin thread should exit. 
@@ -54,14 +54,6 @@ int spin_thread(void *data);
  * @return The spin's current state.
  */
 SpinData spin_get(Spin *spin);
-
-/**
- * Draw a spin object to a renderer.
- * 
- * @param renderer The renderer to draw the spin model with.
- * @param spin The spin object to draw.
- */
-void spin_view_update(SDL_Renderer *renderer, Spin *spin);
 
 /**
  * Deallocates memory allocated for spin. Using a spin object after destorying
