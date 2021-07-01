@@ -18,6 +18,15 @@ typedef struct View View;
 View *view_create(SDL_Window *window, Spin *spin);
 
 /**
+ * Thread function that runs to clear, draw and render to the view window. 
+ * 
+ * Draws the model to the window.
+ * 
+ * @param data Pointer to buffer (View object) to pass to the thread function.
+ */
+int view_thread(void *data);
+
+/**
  * Checks if the current view has exited. 
  * 
  * Thread safe. 
@@ -34,13 +43,15 @@ bool view_done(View *view);
 void view_notify(View *view);
 
 /**
- * Thread function that runs to clear, draw and render to the view window. 
+ * Resize the window controlled by the view.
  * 
- * Draws the model to the window.
+ * The new width and height must be greater than zero.
  * 
- * @param data Pointer to buffer (View object) to pass to the thread function.
+ * @param view The view whose window to resize.
+ * @param x The new width of the view.
+ * @param y The new height of the view.
  */
-int view_thread(void *data);
+void view_resize_window(View *view, int x, int y);
 
 /**
  * Terminates the running View thread, destroys view contents and deallocates

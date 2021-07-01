@@ -111,6 +111,7 @@ void controller_handle_event(Controller *controller, SDL_Event *event)
         case SDL_MOUSEBUTTONDOWN : controller_handle_mouse_down(controller, event); break;
         case SDL_MOUSEWHEEL      : controller_handle_mouse_wheel(controller, event); break;
         case SDL_MOUSEMOTION     : controller_handle_mouse_motion(controller, event); break;
+        case SDL_WINDOWEVENT     : controller_handle_resize(controller, event); break;
         case SDL_QUIT : {
             // No mutex required since only this thread has access to this
             // variable.
@@ -150,6 +151,23 @@ void controller_handle_mouse_wheel(Controller *controller, SDL_Event *event)
 
 void controller_handle_mouse_motion(Controller *controller, SDL_Event *event)
 {}
+
+void controller_handle_resize(Controller *controller, SDL_Event *event)
+{
+    switch (event->window.event)
+    {
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
+        case SDL_WINDOWEVENT_RESIZED: {
+            view_resize_window(
+                controller->view,
+                event->window.data1,
+                event->window.data2
+            );
+            break;
+        }
+        default: break;
+    }
+}
 
 void controller_destroy(Controller *controller)
 {

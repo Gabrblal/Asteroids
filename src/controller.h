@@ -40,6 +40,7 @@ void controller_handle_mouse_up(Controller *controller, SDL_Event *event);
 void controller_handle_mouse_down(Controller *controller, SDL_Event *event);
 void controller_handle_mouse_wheel(Controller *controller, SDL_Event *event);
 void controller_handle_mouse_motion(Controller *controller, SDL_Event *event);
+void controller_handle_resize(Controller *controller, SDL_Event *event);
 
 /**
  * Destroys the controller, and underlying program model and view. 

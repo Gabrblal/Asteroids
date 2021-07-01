@@ -22,8 +22,6 @@ struct View {
     // SDL timer that calls a callback to notify draw_condition, to draw to the 
     // window at a desired rate (60Hz).
     SDL_TimerID framerate_control_timer;
-    // Pointer to the model to draw.
-    Spin *spin;
     // Timer that calls a callback to print how many frames have been rednered
     // in the last second, and reset the fps counter.
     SDL_TimerID fps_counter_timer;
@@ -33,6 +31,8 @@ struct View {
     SDL_mutex *done_mutex;
     // Flag to indicate that the view thread should terminate.
     bool done;
+    // Pointer to the model to draw.
+    Spin *spin;
 };
 
 // Callback to notify the view to draw.
@@ -98,25 +98,10 @@ View *view_create(SDL_Window *window, Spin *spin)
     return view;
 }
 
-bool view_done(View *view)
-{
-    SDL_LockMutex(view->done_mutex);
-    bool done = view->done;
-    SDL_UnlockMutex(view->done_mutex);
-
-    return done;
-}
-
-void view_notify(View *view)
-{
-    // Signal view thread to draw.
-    SDL_CondBroadcast(view->draw_condition);
-}
-
 int view_thread(void *data)
 {
     View *view = data;
-
+    
     while (!view_done(view)) {
         SDL_LockMutex(view->mutex);
 
@@ -134,18 +119,49 @@ int view_thread(void *data)
         SDL_RenderPresent(view->renderer);
         view->fps++;
 
-        // Check after renderering if the view thread should be exited.
-        if (view_done(view)) {
-            SDL_UnlockMutex(view->mutex);
-            return 0;
-        }
-
         // Wait until we should draw the next frame.
         SDL_CondWait(view->draw_condition, view->mutex);
+
+        // After this call the mutex is locked, and will be locked a second time
+        // at the top of loop. SDL mutexes are recursive (must unlock for every
+        // lock called on a mutex), so we must unlock it again.
         SDL_UnlockMutex(view->mutex);
     }
 
     return 0;
+}
+
+bool view_done(View *view)
+{
+    SDL_LockMutex(view->done_mutex);
+    bool done = view->done;
+    SDL_UnlockMutex(view->done_mutex);
+
+    return done;
+}
+
+void view_notify(View *view)
+{
+    // Signal view thread to draw.
+    SDL_CondBroadcast(view->draw_condition);
+}
+
+void view_resize_window(View *view, int x, int y)
+{
+    // Window width and height must be greater than 0.
+    if (x <= 0 || y <= 0) {
+        return;
+    }
+
+    /// @BUG: Resizing doesn't work unless the renderer is recreated.
+    SDL_LockMutex(view->mutex);
+    SDL_DestroyRenderer(view->renderer);
+    view->renderer = SDL_CreateRenderer(
+        view->window,
+        -1,
+        SDL_RENDERER_ACCELERATED
+    );
+    SDL_UnlockMutex(view->mutex);
 }
 
 void view_destroy(View *view)
