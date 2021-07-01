@@ -3,8 +3,14 @@
 
 #include "SDL2/SDL.h"
 #include "spin/spin.h"
+#include "util/definitions.h"
 #include "util/vector2.h"
 
+/**
+ * Represents the graphical component of the application, keeping track of the
+ * renderering thread, user view of the world space (moving the user's view
+ * around) and drawing the model to the current view.
+ */
 typedef struct View View;
 
 /**
@@ -28,6 +34,13 @@ View *view_create(SDL_Window *window, Spin *spin);
 int view_thread(void *data);
 
 /**
+ * Signals the view thread to draw onto the window, if it is waiting to draw.
+ * 
+ * @param view The view to signal to draw.
+ */
+void view_notify(View *view);
+
+/**
  * Checks if the current view has exited. 
  * 
  * Thread safe. 
@@ -35,13 +48,6 @@ int view_thread(void *data);
  * @return If the view should be exited.
  */
 bool view_done(View *view);
-
-/**
- * Signals the view to draw onto the window, if it is waiting to draw.
- * 
- * @param view The view to signal to draw.
- */
-void view_notify(View *view);
 
 /**
  * Resize the window controlled by the view.
@@ -55,30 +61,21 @@ void view_notify(View *view);
 void view_resize_window(View *view, int x, int y);
 
 /**
+ * Toggle the movement of the view in a given direction on or off.
+ * 
+ * @param view The view to move.
+ * @param direction The direction to move the view.
+ * @param state The state of that direction, either on or off.
+ */
+void view_move(View *view, Direction direction, bool state);
+
+/**
  * Draw a spin object to a renderer.
  * 
  * @param renderer The renderer to draw the spin model with.
  * @param spin The spin object to draw.
  */
 void spin_view_update(View *view, SpinData *spin);
-
-/**
- * Transform a pixel on the screen to a world coordinate.
- * 
- * @param pixel The screen pixel location.
- * 
- * @return The world coordinate of the pixel.
- */
-Vector2 view_port_to_world(View *view, Vector2 pixel);
-
-/**
- * Transform a world coordinate to a pixel on the screen.
- * 
- * @param coordinate The world coordinate.
- * 
- * @return The pixel on the screen for the world coordinate.
- */
-Vector2 view_world_to_port(View *view, Vector2 coordinate);
 
 /**
  * Terminates the running View thread, destroys view contents and deallocates

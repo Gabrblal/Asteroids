@@ -3,34 +3,8 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "spin/spin.h"
+#include "view/view_port.h"
 
-/**
- * @struct ViewPort
- * 
- * Struct containing data on where the current view port is. That is, what area
- * of the worldspace is currently being viewed.
- */ 
-typedef struct {
-    // The x coordinate of the view in world space (meters).
-    float x;
-    // The y coordinate of the view in world space (meters).
-    float y;
-    // The width of the view, from the x coordiate to the right (meters).
-    float width;
-    // The height of the view, from the y coordinat down (meters).
-    float height;
-    // Current pixel width of the screen.
-    int screen_width;
-    // Current pixel height of the screen.
-    int screen_height;
-} ViewPort;
-
-/**
- * @struct View
- * 
- * Struct containing all data related to the view.
- */
 struct View {
     // Main game window, used for making the renderer.
     SDL_Window *window;
@@ -52,7 +26,7 @@ struct View {
     // Frames per second, locked under View->mutex.
     int fps;
     // The current view area of the model.
-    ViewPort port;
+    ViewPort *port;
     // Mutex to stop the controller and view from accessing done concurrently.
     SDL_mutex *done_mutex;
     // Flag to indicate that the view thread should terminate.
@@ -108,7 +82,13 @@ View *view_create(SDL_Window *window, Spin *spin)
     view->draw_condition = SDL_CreateCond();
     view->spin = spin;
     view->fps = 0;
-    view->port = (ViewPort){-2.0, -2.0, 4.0, 4.0, 600, 600};
+    view->port = view_port_create(
+        (Vector2){-2.0, -2.0},
+        (Vector2){4.0, 4.0},
+        (Vector2){600, 600},
+        1000,
+        0.5
+    );
     view->done_mutex = SDL_CreateMutex();
     view->done = false;
 
@@ -131,6 +111,8 @@ int view_thread(void *data)
 
     while (!view_done(view)) {
         SDL_LockMutex(view->mutex);
+
+        view_port_update(view->port);
 
         // Clear the screen
         SDL_SetRenderDrawColor(view->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
@@ -159,6 +141,12 @@ int view_thread(void *data)
     return 0;
 }
 
+void view_notify(View *view)
+{
+    // Signal view thread to draw.
+    SDL_CondBroadcast(view->draw_condition);
+}
+
 bool view_done(View *view)
 {
     SDL_LockMutex(view->done_mutex);
@@ -166,12 +154,6 @@ bool view_done(View *view)
     SDL_UnlockMutex(view->done_mutex);
 
     return done;
-}
-
-void view_notify(View *view)
-{
-    // Signal view thread to draw.
-    SDL_CondBroadcast(view->draw_condition);
 }
 
 void view_resize_window(View *view, int x, int y)
@@ -196,6 +178,20 @@ void view_resize_window(View *view, int x, int y)
     SDL_UnlockMutex(view->mutex);
 }
 
+void view_move(View *view, Direction direction, bool state)
+{
+    SDL_LockMutex(view->mutex);
+    switch (direction)
+    {
+        case DIRECTION_NORTH: view_port_move_up(view->port,    state); break;
+        case DIRECTION_EAST:  view_port_move_right(view->port, state); break;
+        case DIRECTION_SOUTH: view_port_move_down(view->port,  state); break;
+        case DIRECTION_WEST:  view_port_move_left(view->port,  state); break;
+        default: break;
+    }
+    SDL_UnlockMutex(view->mutex);
+}
+
 void spin_view_update(View *view, SpinData *spin)
 {
     double s = sin(spin->theta);
@@ -216,33 +212,13 @@ void spin_view_update(View *view, SpinData *spin)
         spin->p3.x * s + spin->p3.y * c
     };
 
-    p1 = view_world_to_port(view, p1);
-    p2 = view_world_to_port(view, p2);
-    p3 = view_world_to_port(view, p3);
+    p1 = view_world_to_port(view->port, p1);
+    p2 = view_world_to_port(view->port, p2);
+    p3 = view_world_to_port(view->port, p3);
 
     SDL_RenderDrawLine(view->renderer, p1.x,  p1.y, p2.x,  p2.y);
     SDL_RenderDrawLine(view->renderer, p2.x,  p2.y, p3.x,  p3.y);
     SDL_RenderDrawLine(view->renderer, p3.x,  p3.y, p1.x,  p1.y);
-}
-
-Vector2 view_port_to_world(View *view, Vector2 pixel)
-{
-    Vector2 world = {
-        pixel.x / view->port.screen_width * view->port.width + view->port.x,
-        pixel.y / view->port.screen_height * view->port.height + view->port.y
-    };
-
-    return world;
-}
-
-Vector2 view_world_to_port(View *view, Vector2 coordinate)
-{
-    Vector2 pixel = {
-        (coordinate.x - view->port.x) * view->port.screen_width / view->port.width,
-        (coordinate.y - view->port.y) * view->port.screen_height / view->port.height
-    };
-
-    return pixel;
 }
 
 void view_destroy(View *view)
