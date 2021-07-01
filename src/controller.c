@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include "SDL2/SDL.h"
-#include "view.h"
+#include "view/view.h"
 #include "spin/spin.h"
 #include "util/vector2.h"
 
@@ -135,6 +135,15 @@ void controller_handle_key_up(Controller *controller, SDL_Event *event)
         SDL_GetKeyName( event->key.keysym.sym ),
         event->key.keysym.scancode
     );
+
+    switch (event->key.keysym.sym)
+    {
+        case SDLK_UP:    view_move(controller->view, DIRECTION_NORTH, false); break;
+        case SDLK_RIGHT: view_move(controller->view, DIRECTION_EAST,  false); break;
+        case SDLK_DOWN:  view_move(controller->view, DIRECTION_SOUTH, false); break;
+        case SDLK_LEFT:  view_move(controller->view, DIRECTION_WEST,  false); break;
+        default: break;
+    }
 }
 
 void controller_handle_key_down(Controller *controller, SDL_Event *event)
@@ -144,6 +153,15 @@ void controller_handle_key_down(Controller *controller, SDL_Event *event)
         SDL_GetKeyName( event->key.keysym.sym ),
         event->key.keysym.scancode
     );
+
+    switch (event->key.keysym.sym)
+    {
+        case SDLK_UP:    view_move(controller->view, DIRECTION_NORTH, true); break;
+        case SDLK_RIGHT: view_move(controller->view, DIRECTION_EAST,  true); break;
+        case SDLK_DOWN:  view_move(controller->view, DIRECTION_SOUTH, true); break;
+        case SDLK_LEFT:  view_move(controller->view, DIRECTION_WEST,  true); break;
+        default: break;
+    }
 }
 
 void controller_handle_mouse_up(Controller *controller, SDL_Event *event)
