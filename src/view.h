@@ -3,6 +3,7 @@
 
 #include "SDL2/SDL.h"
 #include "spin/spin.h"
+#include "util/vector2.h"
 
 typedef struct View View;
 
@@ -52,6 +53,32 @@ void view_notify(View *view);
  * @param y The new height of the view.
  */
 void view_resize_window(View *view, int x, int y);
+
+/**
+ * Draw a spin object to a renderer.
+ * 
+ * @param renderer The renderer to draw the spin model with.
+ * @param spin The spin object to draw.
+ */
+void spin_view_update(View *view, SpinData *spin);
+
+/**
+ * Transform a pixel on the screen to a world coordinate.
+ * 
+ * @param pixel The screen pixel location.
+ * 
+ * @return The world coordinate of the pixel.
+ */
+Vector2 view_port_to_world(View *view, Vector2 pixel);
+
+/**
+ * Transform a world coordinate to a pixel on the screen.
+ * 
+ * @param coordinate The world coordinate.
+ * 
+ * @return The pixel on the screen for the world coordinate.
+ */
+Vector2 view_world_to_port(View *view, Vector2 coordinate);
 
 /**
  * Terminates the running View thread, destroys view contents and deallocates

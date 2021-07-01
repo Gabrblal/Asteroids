@@ -1,6 +1,30 @@
 #include "view.h"
 
 #include <stdio.h>
+#include <math.h>
+
+#include "spin/spin.h"
+
+/**
+ * @struct ViewPort
+ * 
+ * Struct containing data on where the current view port is. That is, what area
+ * of the worldspace is currently being viewed.
+ */ 
+typedef struct {
+    // The x coordinate of the view in world space (meters).
+    float x;
+    // The y coordinate of the view in world space (meters).
+    float y;
+    // The width of the view, from the x coordiate to the right (meters).
+    float width;
+    // The height of the view, from the y coordinat down (meters).
+    float height;
+    // Current pixel width of the screen.
+    int screen_width;
+    // Current pixel height of the screen.
+    int screen_height;
+} ViewPort;
 
 /**
  * @struct View
@@ -27,6 +51,8 @@ struct View {
     SDL_TimerID fps_counter_timer;
     // Frames per second, locked under View->mutex.
     int fps;
+    // The current view area of the model.
+    ViewPort port;
     // Mutex to stop the controller and view from accessing done concurrently.
     SDL_mutex *done_mutex;
     // Flag to indicate that the view thread should terminate.
@@ -82,6 +108,7 @@ View *view_create(SDL_Window *window, Spin *spin)
     view->draw_condition = SDL_CreateCond();
     view->spin = spin;
     view->fps = 0;
+    view->port = (ViewPort){-2.0, -2.0, 4.0, 4.0, 600, 600};
     view->done_mutex = SDL_CreateMutex();
     view->done = false;
 
@@ -101,7 +128,7 @@ View *view_create(SDL_Window *window, Spin *spin)
 int view_thread(void *data)
 {
     View *view = data;
-    
+
     while (!view_done(view)) {
         SDL_LockMutex(view->mutex);
 
@@ -113,7 +140,8 @@ int view_thread(void *data)
         SDL_SetRenderDrawColor(view->renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
 
         // Update the renderer.
-        spin_view_update(view->renderer, view->spin);
+        SpinData spin_data = spin_get(view->spin);
+        spin_view_update(view, &spin_data);
 
         // Draw!
         SDL_RenderPresent(view->renderer);
@@ -148,6 +176,10 @@ void view_notify(View *view)
 
 void view_resize_window(View *view, int x, int y)
 {
+    if (!view) {
+        return;
+    }
+
     // Window width and height must be greater than 0.
     if (x <= 0 || y <= 0) {
         return;
@@ -162,6 +194,55 @@ void view_resize_window(View *view, int x, int y)
         SDL_RENDERER_ACCELERATED
     );
     SDL_UnlockMutex(view->mutex);
+}
+
+void spin_view_update(View *view, SpinData *spin)
+{
+    double s = sin(spin->theta);
+    double c = cos(spin->theta);
+
+    Vector2 p1 = {
+        spin->p1.x * c - spin->p1.y * s,
+        spin->p1.x * s + spin->p1.y * c
+    };
+
+    Vector2 p2 = {
+        spin->p2.x * c - spin->p2.y * s,
+        spin->p2.x * s + spin->p2.y * c
+    };
+
+    Vector2 p3 = {
+        spin->p3.x * c - spin->p3.y * s,
+        spin->p3.x * s + spin->p3.y * c
+    };
+
+    p1 = view_world_to_port(view, p1);
+    p2 = view_world_to_port(view, p2);
+    p3 = view_world_to_port(view, p3);
+
+    SDL_RenderDrawLine(view->renderer, p1.x,  p1.y, p2.x,  p2.y);
+    SDL_RenderDrawLine(view->renderer, p2.x,  p2.y, p3.x,  p3.y);
+    SDL_RenderDrawLine(view->renderer, p3.x,  p3.y, p1.x,  p1.y);
+}
+
+Vector2 view_port_to_world(View *view, Vector2 pixel)
+{
+    Vector2 world = {
+        pixel.x / view->port.screen_width * view->port.width + view->port.x,
+        pixel.y / view->port.screen_height * view->port.height + view->port.y
+    };
+
+    return world;
+}
+
+Vector2 view_world_to_port(View *view, Vector2 coordinate)
+{
+    Vector2 pixel = {
+        (coordinate.x - view->port.x) * view->port.screen_width / view->port.width,
+        (coordinate.y - view->port.y) * view->port.screen_height / view->port.height
+    };
+
+    return pixel;
 }
 
 void view_destroy(View *view)

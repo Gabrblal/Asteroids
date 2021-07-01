@@ -6,6 +6,7 @@
 #include "SDL2/SDL.h"
 #include "view.h"
 #include "spin/spin.h"
+#include "util/vector2.h"
 
 /**
  * @struct Controller
@@ -42,7 +43,12 @@ Controller *controller_create()
     }
 
     // Create the model.
-    Spin *model = spin_create(300, 300, 100, 0);
+    Spin *model = spin_create(
+        (Vector2){1.0, 0.0},
+        (Vector2){-1.0, 1.0},
+        (Vector2){0.0, -1.0}
+    );
+
     if (!model) {
         printf("Failed to create spin model. Exiting.");
         SDL_DestroyWindow(window);
