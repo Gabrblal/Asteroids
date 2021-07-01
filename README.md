@@ -41,7 +41,7 @@ Current status:
         - :black_square_button: Quiet sound on collision.
         - :black_square_button: Elasticity.
     - :black_square_button: Player.
-        - :black_square_button: Polygon structure implementation.
+        - :black_square_button: Structure, how to bind with interaction events in the world.
         - :black_square_button: Projectiles (sound on fire) (raycasting?).
         - :black_square_button: Health.
     - :black_square_button: World.
