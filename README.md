@@ -1,5 +1,5 @@
 # Asteroids
-Implementation of the game Asteroids done in SDL, with a goal of implementation from scratch broad and narrow phase collision detection.
+Implementation of the game Asteroids done in SDL, with a goal of implementing from scratch broad and narrow phase collision detection.
 
 Current status:
 - :arrows_counterclockwise: General structure.
