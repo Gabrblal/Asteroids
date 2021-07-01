@@ -80,15 +80,16 @@ Controller *controller_create()
 void controller_thread(Controller *controller)
 {
     SDL_Event event;
+
     while (true) {
 
         // Wait for the next event, and timeout after 20ms to check if the
         // controller should exit.
-        int timed_out = SDL_WaitEventTimeout(&event, 20);
+        int received = SDL_WaitEventTimeout(&event, 20);
 
         // If the controller did not time out (it instead received an event)
         // then handle the event.
-        if (!timed_out) {
+        if (received) {
             controller_handle_event(controller, &event);
         }
 
@@ -121,10 +122,22 @@ void controller_handle_event(Controller *controller, SDL_Event *event)
 }
 
 void controller_handle_key_up(Controller *controller, SDL_Event *event)
-{}
+{
+    printf(
+        "Up %s (0x%02X)\n",
+        SDL_GetKeyName( event->key.keysym.sym ),
+        event->key.keysym.scancode
+    );
+}
 
 void controller_handle_key_down(Controller *controller, SDL_Event *event)
-{}
+{
+    printf(
+        "Down %s (0x%02X)\n",
+        SDL_GetKeyName( event->key.keysym.sym ),
+        event->key.keysym.scancode
+    );
+}
 
 void controller_handle_mouse_up(Controller *controller, SDL_Event *event)
 {}
