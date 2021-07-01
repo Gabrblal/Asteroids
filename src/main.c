@@ -1,7 +1,8 @@
 #include "SDL2/SDL.h"
 
-#include "controller.h"
 #include <stdio.h>
+
+#include "controller.h"
 
 int main(int argc, char* argv[])
 {
