@@ -21,18 +21,38 @@ struct View {
     SDL_cond *draw_condition;
     // SDL timer that calls a callback to notify draw_condition, to draw to the 
     // window at a desired rate (60Hz).
-    SDL_TimerID framerate_timer;
+    SDL_TimerID framerate_control_timer;
     // Pointer to the model to draw.
     Spin *spin;
+    // Timer that calls a callback to print how many frames have been rednered
+    // in the last second, and reset the fps counter.
+    SDL_TimerID fps_counter_timer;
+    // Frames per second, locked under View->mutex.
+    int fps;
     // Mutex to stop the controller and view from accessing done concurrently.
     SDL_mutex *done_mutex;
     // Flag to indicate that the view thread should terminate.
     bool done;
 };
 
-uint32_t view_notify_callback(uint32_t interval, void *view)
+// Callback to notify the view to draw.
+uint32_t view_notify_callback(uint32_t interval, void *data)
 {
-    view_notify(view);
+    view_notify(data);
+    return interval;
+}
+ 
+// Callback to print the frames per second.
+uint32_t view_fps_counter_callback(uint32_t interval, void *data)
+{
+    View *view = data;
+
+    SDL_LockMutex(view->mutex);
+    int fps = view->fps;
+    view->fps = 0;
+    SDL_UnlockMutex(view->mutex);
+
+    printf("FPS: %i\n", fps);
     return interval;
 }
 
@@ -61,12 +81,16 @@ View *view_create(SDL_Window *window, Spin *spin)
     view->mutex = SDL_CreateMutex();
     view->draw_condition = SDL_CreateCond();
     view->spin = spin;
+    view->fps = 0;
     view->done_mutex = SDL_CreateMutex();
     view->done = false;
 
     // Add a timer, that calls back to the view_notify_callback() function
     // every 17 milliseconds (approximately 144Hz).
-    view->framerate_timer = SDL_AddTimer(7, view_notify_callback, view);
+    view->framerate_control_timer = SDL_AddTimer(7, view_notify_callback, view);
+
+    // Print framerate every second.
+    view->fps_counter_timer = SDL_AddTimer(1000, view_fps_counter_callback, view);
 
     // Success! Start the drawing thread and return the view.
     view->thread = SDL_CreateThread(view_thread, NULL, view);
@@ -86,7 +110,7 @@ bool view_done(View *view)
 void view_notify(View *view)
 {
     // Signal view thread to draw.
-    SDL_CondSignal(view->draw_condition);
+    SDL_CondBroadcast(view->draw_condition);
 }
 
 int view_thread(void *data)
@@ -108,6 +132,7 @@ int view_thread(void *data)
 
         // Draw!
         SDL_RenderPresent(view->renderer);
+        view->fps++;
 
         // Check after renderering if the view thread should be exited.
         if (view_done(view)) {
@@ -115,8 +140,9 @@ int view_thread(void *data)
             return 0;
         }
 
-        // Wait until we should draw the
-        SDL_CondWaitTimeout(view->draw_condition, view->mutex, 1 / 60 * 1000);
+        // Wait until we should draw the next frame.
+        SDL_CondWait(view->draw_condition, view->mutex);
+        SDL_UnlockMutex(view->mutex);
     }
 
     return 0;
@@ -135,7 +161,8 @@ void view_destroy(View *view)
     SDL_WaitThread(view->thread, NULL);
 
     // Stop the condition variable being triggered.
-    SDL_RemoveTimer(view->framerate_timer);
+    SDL_RemoveTimer(view->framerate_control_timer);
+    SDL_RemoveTimer(view->fps_counter_timer);
 
     // Destroy the view.
     SDL_DestroyRenderer(view->renderer);
