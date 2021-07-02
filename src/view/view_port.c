@@ -1,6 +1,7 @@
 #include "view/view_port.h"
 
-#include "stdlib.h"
+#include <math.h>
+#include <stdlib.h>
 
 ViewPort *view_port_create(
     Vector2 position,
@@ -31,7 +32,7 @@ ViewPort *view_port_create(
     // Initially has no velocity.
     view_port->movement.v_x = 0.0;
     view_port->movement.v_y = 0.0;
-    view_port->movement.v_z = 1.0;
+    view_port->movement.v_z = 0.0;
     view_port->movement.v_max = velocity_max;
     view_port->movement.a = acceleration;
 
@@ -74,10 +75,10 @@ void view_port_update(ViewPort *view_port)
 
     if (m->left != m->right) {
         // Accelerate
-        m->v_x += (m->right ? m->a : -m->a) * view_port->dimensions.x;
+        m->v_x += m->right ? m->a : -m->a;
 
         // Check bounds
-        if (abs(m->v_x) > m->v_max * view_port->dimensions.x) {
+        if (fabs(m->v_x) > m->v_max) {
             m->v_x = m->v_x > 0 ? m->v_max : -m->v_max;
         }
     }
@@ -94,10 +95,10 @@ void view_port_update(ViewPort *view_port)
 
     if (m->up != m->down) {
         // Accelerate
-        m->v_y += (m->down ? m->a : -m->a) * view_port->dimensions.y;
+        m->v_y += m->down ? m->a : -m->a;
 
         // Check bounds
-        if (abs(m->v_y) > m->v_max * view_port->dimensions.y) {
+        if (fabs(m->v_y) > m->v_max) {
             m->v_y = m->v_y > 0 ?  m->v_max : -m->v_max;
         }
     }
@@ -114,28 +115,28 @@ void view_port_update(ViewPort *view_port)
 
     if (m->in != m->out) {
         // Accelerate
-        m->v_z += m->in ? m->a : -m->a;
+        m->v_z += m->in ? -m->a : m->a;
 
         // Check bounds
-        if (abs(m->v_z) > 1.0 + m->v_max) {
+        if (fabs(m->v_z) > m->v_max) {
             m->v_z = m->v_z > 0 ?  m->v_max : -m->v_max;
         }
     }
-    else if (m->v_z != 1.0) {
+    else if (m->v_z != 0) {
         // Deccelerate
-        double dz = m->v_z > 1.0 ? -m->a : m->a;
+        double dz = m->v_z > 0 ? -m->a : m->a;
         m->v_z += dz;
 
         // Check bounds
-        if ((m->v_z < 1.0 && dz < 0) || (m->v_z > 1.0 && dz > 0)) {
-            m->v_z = 1.0;
+        if ((m->v_z < 0 && dz < 0) || (m->v_z > 0 && dz > 0)) {
+            m->v_z = 0;
         }
     }
 
-    view_port->position.x += m->v_x;
-    view_port->position.y += m->v_y;
-    view_port->dimensions.x *= m->v_z;
-    view_port->dimensions.y *= m->v_z;
+    view_port->position.x += m->v_x * view_port->dimensions.x;
+    view_port->position.y += m->v_y * view_port->dimensions.y;
+    view_port->dimensions.x *= 1.0 + m->v_z;
+    view_port->dimensions.y *= 1.0 + m->v_z;
 }
 
 Vector2 view_port_to_world(ViewPort *port, Vector2 pixel)

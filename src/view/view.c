@@ -86,7 +86,7 @@ View *view_create(SDL_Window *window, Spin *spin)
         (Vector2){-2.0, -2.0},
         (Vector2){4.0, 4.0},
         (Vector2){300, 300},
-        0.0001, 0.001
+        0.0008, 0.02
     );
     view->done_mutex = SDL_CreateMutex();
     view->done = false;
