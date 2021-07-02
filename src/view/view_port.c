@@ -6,8 +6,8 @@ ViewPort *view_port_create(
     Vector2 position,
     Vector2 dimensions,
     Vector2 screen,
-    double inertia,
-    double max_velocity
+    double acceleration,
+    double velocity_max
 ) {
     ViewPort *view_port = malloc(sizeof(ViewPort));
     if (!view_port) {
@@ -25,14 +25,15 @@ ViewPort *view_port_create(
     view_port->movement.down = false;
     view_port->movement.left = false;
     view_port->movement.right = false;
+    view_port->movement.in = false;
+    view_port->movement.out = false;
 
     // Initially has no velocity.
-    view_port->movement.velocity_x = 0.0;
-    view_port->movement.velocity_y = 0.0;
-    view_port->movement.velocity_z = 0.0;
-    view_port->movement.velocity_max = max_velocity;
-    view_port->movement.velocity_max_zoom = 1.0;
-    view_port->movement.inertia = inertia;
+    view_port->movement.v_x = 0.0;
+    view_port->movement.v_y = 0.0;
+    view_port->movement.v_z = 1.0;
+    view_port->movement.v_max = velocity_max;
+    view_port->movement.a = acceleration;
 
     return view_port;
 }
@@ -53,52 +54,88 @@ void view_port_move_right(ViewPort *view_port, bool state) {
     view_port->movement.right = state;
 }
 
+void view_port_move_in(ViewPort *view_port, bool state) {
+    view_port->movement.in = state;
+}
+
+void view_port_move_out(ViewPort *view_port, bool state) {
+    view_port->movement.out = state;
+}
+
 void view_port_update(ViewPort *view_port)
 {
+    /// @todo: This code is essentially repeated 3 times, create a function
+    /// to reduce bloat.
+
+    /// @todo: Rewrite with control systems style reference velocity and PID
+    /// control.
+
     ViewPortMovement *m = &view_port->movement;
 
     if (m->left != m->right) {
         // Accelerate
-        m->velocity_x += (m->right ? 1.0 : -1.0) / m->inertia;
+        m->v_x += (m->right ? m->a : -m->a) * view_port->dimensions.x;
 
         // Check bounds
-        if (abs(m->velocity_x) > m->velocity_max) {
-            m->velocity_x = (m->velocity_x > 0 ? 1.0 : -1.0) * m->velocity_max;
+        if (abs(m->v_x) > m->v_max * view_port->dimensions.x) {
+            m->v_x = m->v_x > 0 ? m->v_max : -m->v_max;
         }
     }
-    else {
+    else if (m->v_x != 0) {
         // Deccelerate
-        double dx = (m->velocity_x > 0 ? -1.0 : 1.0) / m->inertia;
-        m->velocity_x += dx;
+        double dx = m->v_x > 0 ? -m->a : m->a;
+        m->v_x += dx;
 
         // Check bounds
-        if ((m->velocity_x > 0 && dx > 0) || (m->velocity_x < 0 && dx < 0)) {
-            m->velocity_x = 0;
+        if ((m->v_x > 0 && dx > 0) || (m->v_x < 0 && dx < 0)) {
+            m->v_x = 0;
         }
     }
 
     if (m->up != m->down) {
         // Accelerate
-        m->velocity_y += (m->down ? 1.0 : -1.0) / m->inertia;
+        m->v_y += (m->down ? m->a : -m->a) * view_port->dimensions.y;
 
         // Check bounds
-        if (abs(m->velocity_y) > m->velocity_max) {
-            m->velocity_y = (m->velocity_y > 0 ? 1.0 : -1.0) * m->velocity_max;
+        if (abs(m->v_y) > m->v_max * view_port->dimensions.y) {
+            m->v_y = m->v_y > 0 ?  m->v_max : -m->v_max;
         }
     }
-    else {
+    else if (m->v_y != 0) {
         // Deccelerate
-        double dy = (m->velocity_y > 0 ? -1.0 : 1.0) / m->inertia;
-        m->velocity_y += dy;
+        double dy = m->v_y > 0 ? -m->a : m->a;
+        m->v_y += dy;
 
         // Check bounds
-        if ((m->velocity_y > 0 && dy > 0) || (m->velocity_y < 0 && dy < 0)) {
-            m->velocity_y = 0;
+        if ((m->v_y > 0 && dy > 0) || (m->v_y < 0 && dy < 0)) {
+            m->v_y = 0;
         }
     }
 
-    view_port->position.x += m->velocity_x;
-    view_port->position.y += m->velocity_y;
+    if (m->in != m->out) {
+        // Accelerate
+        m->v_z += m->in ? m->a : -m->a;
+
+        // Check bounds
+        if (abs(m->v_z) > 1.0 + m->v_max) {
+            m->v_z = m->v_z > 0 ?  m->v_max : -m->v_max;
+        }
+    }
+    else if (m->v_z != 1.0) {
+        // Deccelerate
+        double dz = m->v_z > 1.0 ? -m->a : m->a;
+        m->v_z += dz;
+
+        // Check bounds
+        if ((m->v_z < 1.0 && dz < 0) || (m->v_z > 1.0 && dz > 0)) {
+            m->v_z = 1.0;
+        }
+    }
+
+    view_port->position.x += m->v_x;
+    view_port->position.y += m->v_y;
+    view_port->dimensions.x *= m->v_z;
+    view_port->dimensions.y *= m->v_z;
 }
 
 Vector2 view_port_to_world(ViewPort *view, Vector2 pixel)

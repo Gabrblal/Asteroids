@@ -27,18 +27,17 @@ struct ViewPortMovement {
     bool in;
     // Is the port moving zooming out?
     bool out;
-    // Velocity left or right.
-    double velocity_x;
-    // Velocity up or down.
-    double velocity_y;
-    // Velocity of the zoom in the z direction.
-    double velocity_z;
+    // Velocity left or right, in percentage of the ViewPort dimensions.
+    double v_x;
+    // Velocity up or down, in percentage of the ViewPort dimensions.
+    double v_y;
+    // Velocity of the zoom in the z direction, in percentage of the ViewPort 
+    // dimensions.
+    double v_z;
     // How fast or slow the view should accelerate.
-    double inertia;
-    // Maximum panning.
-    double velocity_max;
-    // Maximum zoom velocity.
-    double velocity_max_zoom;
+    double a;
+    // Maximum panning velocity, in percentage of the ViewPort dimensions.
+    double v_max;
 };
 
 /**
@@ -67,15 +66,17 @@ struct ViewPort {
  * @param position Where the view port should be located initially.;
  * @param dimensions The size of the rectangular area seen by the view.
  * @param screen The screen dimensions in pixels.
- * @param inertia The view's inertia when speeding up or slowing down.
- * @param max_velocity The maximum speed of the view.
+ * @param acceleration The view's acceleration as a percentage of it's
+ * dimensions.
+ * @param max_velocity The maximum speed of the view as a percentage of it's
+ * dimensions.
  * @return A pointer to the new ViewPort instance.
  */
 ViewPort *view_port_create(
     Vector2 position,
     Vector2 dimensions,
     Vector2 screen,
-    double inertia,
+    double acceleration,
     double max_velocity
 );
 
@@ -98,6 +99,16 @@ void view_port_move_left(ViewPort *view_port, bool state);
  * Toggle the view port moving right.
  */
 void view_port_move_right(ViewPort *view_port, bool state);
+
+/**
+ * Toggle the view port moving left.
+ */
+void view_port_move_in(ViewPort *view_port, bool state);
+
+/**
+ * Toggle the view port moving right.
+ */
+void view_port_move_out(ViewPort *view_port, bool state);
 
 /**
  * Update a view port based on if it is being moved along any of the axes, and
