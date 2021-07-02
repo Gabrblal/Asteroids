@@ -86,8 +86,7 @@ View *view_create(SDL_Window *window, Spin *spin)
         (Vector2){-2.0, -2.0},
         (Vector2){4.0, 4.0},
         (Vector2){600, 600},
-        1000,
-        0.5
+        0.0001, 0.001
     );
     view->done_mutex = SDL_CreateMutex();
     view->done = false;
@@ -112,14 +111,14 @@ int view_thread(void *data)
     while (!view_done(view)) {
         SDL_LockMutex(view->mutex);
 
-        view_port_update(view->port);
-
         // Clear the screen
         SDL_SetRenderDrawColor(view->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(view->renderer);
 
-        // Set render colour to white.
-        SDL_SetRenderDrawColor(view->renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+        // Update the view.
+        view_port_update(view->port);
+
+        view_draw_grid(view);
 
         // Update the renderer.
         SpinData spin_data = spin_get(view->spin);
@@ -175,6 +174,7 @@ void view_resize_window(View *view, int x, int y)
         -1,
         SDL_RENDERER_ACCELERATED
     );
+    view->port->screen = (Vector2){x, y};
     SDL_UnlockMutex(view->mutex);
 }
 
@@ -187,9 +187,36 @@ void view_move(View *view, Direction direction, bool state)
         case DIRECTION_EAST:  view_port_move_right(view->port, state); break;
         case DIRECTION_SOUTH: view_port_move_down(view->port,  state); break;
         case DIRECTION_WEST:  view_port_move_left(view->port,  state); break;
+        case DIRECTION_IN:    view_port_move_in(view->port,    state); break;
+        case DIRECTION_OUT:   view_port_move_out(view->port,   state); break;
         default: break;
     }
     SDL_UnlockMutex(view->mutex);
+}
+
+void view_draw_grid(View *view)
+{
+    /// @todo: Update grid to new size when it gets to dense or sparse.
+
+    // Calculate world space bounds.
+    double x1 = view->port->position.x;
+    double y1 = view->port->position.y;
+    double x2 = x1 + view->port->dimensions.x;
+    double y2 = y1 + view->port->dimensions.y;
+
+    SDL_SetRenderDrawColor(view->renderer, 50, 50, 50, SDL_ALPHA_OPAQUE);
+
+    for (int x = round(x1), end = round(x2) + 1; x < end; x++) {
+        Vector2 p1 = view_world_to_port(view->port, (Vector2){x, y1});
+        Vector2 p2 = view_world_to_port(view->port, (Vector2){x, y2});
+        SDL_RenderDrawLine(view->renderer, p1.x,  p1.y, p2.x,  p2.y);
+    }
+
+    for (int y = round(y1), end = round(y2) + 1; y < end; y++) {
+        Vector2 p1 = view_world_to_port(view->port, (Vector2){x1, y});
+        Vector2 p2 = view_world_to_port(view->port, (Vector2){x2, y});
+        SDL_RenderDrawLine(view->renderer, p1.x,  p1.y, p2.x,  p2.y);
+    }
 }
 
 void spin_view_update(View *view, SpinData *spin)
@@ -216,6 +243,7 @@ void spin_view_update(View *view, SpinData *spin)
     p2 = view_world_to_port(view->port, p2);
     p3 = view_world_to_port(view->port, p3);
 
+    SDL_SetRenderDrawColor(view->renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
     SDL_RenderDrawLine(view->renderer, p1.x,  p1.y, p2.x,  p2.y);
     SDL_RenderDrawLine(view->renderer, p2.x,  p2.y, p3.x,  p3.y);
     SDL_RenderDrawLine(view->renderer, p3.x,  p3.y, p1.x,  p1.y);

@@ -70,6 +70,13 @@ void view_resize_window(View *view, int x, int y);
 void view_move(View *view, Direction direction, bool state);
 
 /**
+ * Draw a grid in the world space.
+ * 
+ * @param view The view to which to draw the grid.
+ */
+void view_draw_grid(View *view);
+
+/**
  * Draw a spin object to a renderer.
  * 
  * @param renderer The renderer to draw the spin model with.
