@@ -142,6 +142,8 @@ void controller_handle_key_up(Controller *controller, SDL_Event *event)
         case SDLK_RIGHT: view_move(controller->view, DIRECTION_EAST,  false); break;
         case SDLK_DOWN:  view_move(controller->view, DIRECTION_SOUTH, false); break;
         case SDLK_LEFT:  view_move(controller->view, DIRECTION_WEST,  false); break;
+        case SDLK_e:     view_move(controller->view, DIRECTION_IN,    false); break;
+        case SDLK_q:     view_move(controller->view, DIRECTION_OUT,   false); break;
         default: break;
     }
 }
@@ -160,6 +162,8 @@ void controller_handle_key_down(Controller *controller, SDL_Event *event)
         case SDLK_RIGHT: view_move(controller->view, DIRECTION_EAST,  true); break;
         case SDLK_DOWN:  view_move(controller->view, DIRECTION_SOUTH, true); break;
         case SDLK_LEFT:  view_move(controller->view, DIRECTION_WEST,  true); break;
+        case SDLK_e:     view_move(controller->view, DIRECTION_IN,    true); break;
+        case SDLK_q:     view_move(controller->view, DIRECTION_OUT,   true); break;
         case SDLK_ESCAPE: controller->done = true;
         default: break;
     }
