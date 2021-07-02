@@ -1,6 +1,0 @@
-Seperating Axis Theorem.
-Continuous Collision Detection.
-Broad phase quad trees.
-Polygon struct.
-Astroid inertia, acceleration / rotation simulating.
-Point struct mathematics (addition, dot product, projection etc)
