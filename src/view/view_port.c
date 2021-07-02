@@ -138,24 +138,26 @@ void view_port_update(ViewPort *view_port)
     view_port->dimensions.y *= m->v_z;
 }
 
-Vector2 view_port_to_world(ViewPort *view, Vector2 pixel)
+Vector2 view_port_to_world(ViewPort *port, Vector2 pixel)
 {
-    // Take the percentage that the pixel is across the screen and multiply that
-    // by the maximum distance in meters across the screen. Add it to the 
-    // position.
+    // Interpret the position (port->position.x, port->position.y) as the
+    // center of the screen. Take the percentage that the pixel is across the
+    // screen and multiply that by the distance in meters across the screen.
+    // Then subtract away half the region of space and that is how far to the
+    // right the position is from the centre.
     Vector2 world = {
-        view->position.x + pixel.x / view->screen.x * view->dimensions.x,
-        view->position.y + pixel.y / view->screen.y * view->dimensions.y
+        (port->position.x - port->dimensions.x) + pixel.x / port->screen.x * port->dimensions.x,
+        (port->position.y - port->dimensions.y) + pixel.y / port->screen.y * port->dimensions.y
     };
     return world;
 }
 
-Vector2 view_world_to_port(ViewPort *view, Vector2 coordinate)
+Vector2 view_world_to_port(ViewPort *port, Vector2 coordinate)
 {
-    // Inverse of the above operation in view_port_to_world()
+    // Inverse of the above operation in view_port_to_world().
     Vector2 pixel = {
-        (coordinate.x - view->position.x) * view->screen.x / view->dimensions.x,
-        (coordinate.y - view->position.y) * view->screen.y / view->dimensions.x
+        (coordinate.x - port->position.x + port->dimensions.x) * port->screen.x / port->dimensions.x,
+        (coordinate.y - port->position.y + port->dimensions.y) * port->screen.y / port->dimensions.x
     };
     return pixel;
 }

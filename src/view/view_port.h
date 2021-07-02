@@ -49,7 +49,8 @@ typedef struct ViewPort ViewPort;
 struct ViewPort {
     // The position of the view port in world space (meters).
     Vector2 position;
-    // The rectangular region of space seen in the world space (meters).
+    // The radius of the rectangular region of space seen in the world
+    // (meters). That is half the width and half the height of the view port.
     Vector2 dimensions;
     // The dimensions of the screen.
     Vector2 screen;
@@ -64,7 +65,7 @@ struct ViewPort {
  * and dimensions.
  * 
  * @param position Where the view port should be located initially.;
- * @param dimensions The size of the rectangular area seen by the view.
+ * @param dimensions Radii of the rectangular area seen by the view.
  * @param screen The screen dimensions in pixels.
  * @param acceleration The view's acceleration as a percentage of it's
  * dimensions.

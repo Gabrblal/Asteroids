@@ -85,7 +85,7 @@ View *view_create(SDL_Window *window, Spin *spin)
     view->port = view_port_create(
         (Vector2){-2.0, -2.0},
         (Vector2){4.0, 4.0},
-        (Vector2){600, 600},
+        (Vector2){300, 300},
         0.0001, 0.001
     );
     view->done_mutex = SDL_CreateMutex();
@@ -174,7 +174,7 @@ void view_resize_window(View *view, int x, int y)
         -1,
         SDL_RENDERER_ACCELERATED
     );
-    view->port->screen = (Vector2){x, y};
+    view->port->screen = (Vector2){x / 2, y / 2};
     SDL_UnlockMutex(view->mutex);
 }
 
@@ -199,10 +199,10 @@ void view_draw_grid(View *view)
     /// @todo: Update grid to new size when it gets to dense or sparse.
 
     // Calculate world space bounds.
-    double x1 = view->port->position.x;
-    double y1 = view->port->position.y;
-    double x2 = x1 + view->port->dimensions.x;
-    double y2 = y1 + view->port->dimensions.y;
+    double x1 = view->port->position.x - view->port->dimensions.x;
+    double y1 = view->port->position.y - view->port->dimensions.y;
+    double x2 = view->port->position.x + view->port->dimensions.x;
+    double y2 = view->port->position.y + view->port->dimensions.y;
 
     SDL_SetRenderDrawColor(view->renderer, 50, 50, 50, SDL_ALPHA_OPAQUE);
 
