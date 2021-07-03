@@ -5,6 +5,11 @@
 
 typedef struct Controller Controller;
 
+#define WINDOW_WIDTH 1200
+#define WINDOW_HEIGHT 1200
+#define WINDOW_X SDL_WINDOWPOS_CENTERED
+#define WINDOW_Y SDL_WINDOWPOS_CENTERED
+
 /**
  * Creates a new controller instance. Instantiates the model and it's view. 
  * 

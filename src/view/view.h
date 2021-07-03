@@ -2,7 +2,6 @@
 #define VIEW_H
 
 #include "SDL2/SDL.h"
-#include "spin/spin.h"
 #include "util/definitions.h"
 #include "util/vector2.h"
 #include "view/view_port.h"

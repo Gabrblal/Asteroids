@@ -33,8 +33,8 @@ Controller *controller_create()
     SDL_Window *window = NULL;
     window = SDL_CreateWindow(
         "Asteroids",
-        600, 600, // Position of window (x, y)
-        600, 600, // Dimensions of window (width, height)
+        WINDOW_X, WINDOW_Y,
+        WINDOW_WIDTH, WINDOW_HEIGHT,
         SDL_WINDOW_RESIZABLE
     );
     if (!window) {
@@ -43,20 +43,23 @@ Controller *controller_create()
     }
 
     // Create the model.
-    Spin *model = spin_create(
-        (Vector2){1.0, 0.0},
-        (Vector2){-1.0, 1.0},
-        (Vector2){0.0, -1.0}
-    );
-
+    Spin *model = spin_create();
     if (!model) {
         printf("Failed to create spin model. Exiting.");
         SDL_DestroyWindow(window);
         return NULL;
     }
 
+    ViewPort *port = view_port_create(
+        (Vector2){0.0, 0.0},
+        (Vector2){2.0, 2.0},
+        (Vector2){WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2},
+        0.0008,
+        0.02
+    );
+
     // Create the view of the model.
-    View *view = view_create(window, model);
+    View *view = view_create(window, port, spin_draw, model);
     if (!view) {
         printf("Failed to create view. Exiting.");
         spin_destroy(model);
