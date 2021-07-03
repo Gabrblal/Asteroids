@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "util/vector2.h"
+#include "view/view.h"
 
 /**
  * The possible state of the spinning line.
@@ -12,7 +13,11 @@ typedef struct {
     Vector2 p1; // Line begin x coordinate.
     Vector2 p2; // Line begin y coordinate.
     Vector2 p3; // Line begin x coordinate.
-    double theta; // Current angle of the line.
+    Vector2 pos; // Where to place the triangle.
+    double theta1; // Current angle of the line.
+    double theta2; // Current angle of the triangle.
+    double omega1;
+    double omega2;
 } SpinData;
 
 typedef struct Spin Spin;
@@ -20,7 +25,15 @@ typedef struct Spin Spin;
 /**
  * Create a new spin instance.
  */
-Spin *spin_create(Vector2 p1, Vector2 p2, Vector2 p3);
+Spin *spin_create();
+
+/**
+ * Apply a function to all triangles
+ * 
+ * @param func The function to apply.
+ * @param data Optional data to pass to the function.
+ */
+void spin_apply(Spin *spin, void(*func)(void *, void *), void *data);
 
 /**
  * Checks if the spin thread should exit. 
@@ -48,12 +61,12 @@ void spin_increment(Spin *spin);
 int spin_thread(void *data);
 
 /**
- * Retrieve the current state of a Spin model.
+ * Draw a spin object to a renderer.
  * 
- * @param spin The Spin model to access data from.
- * @return The spin's current state.
+ * @param renderer The renderer to draw the spin model with.
+ * @param spin The spin object to draw.
  */
-SpinData spin_get(Spin *spin);
+void spin_draw(View *view, void *spin);
 
 /**
  * Deallocates memory allocated for spin. Using a spin object after destorying
