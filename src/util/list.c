@@ -281,7 +281,7 @@ bool list_find(List *list, void **element, bool(*func)(void*))
     return false;
 }
 
-bool list_apply(List *list, void(*func)(void*))
+bool list_apply(List *list, void(*func)(void*, void*), void *data)
 {
     if (!list || !func)
         return false;
@@ -289,7 +289,7 @@ bool list_apply(List *list, void(*func)(void*))
     // Loop through all nodes and apply the function to each element.
     Node *node = list->head;
     while (node) {
-        func(node->element);
+        func(node->element, data);
         node = node->next;
     }
 

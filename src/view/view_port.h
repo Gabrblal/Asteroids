@@ -65,8 +65,8 @@ struct ViewPort {
  * and dimensions.
  * 
  * @param position Where the view port should be located initially.;
- * @param dimensions Radii of the rectangular area seen by the view.
- * @param screen The screen dimensions in pixels.
+ * @param dimensions Half the rectangular dimensions of the area seen by the view.
+ * @param screen Half the screen dimensions in pixels.
  * @param acceleration The view's acceleration as a percentage of it's
  * dimensions.
  * @param max_velocity The maximum speed of the view as a percentage of it's
