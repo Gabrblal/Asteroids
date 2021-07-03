@@ -3,16 +3,21 @@
 
 #include <math.h>
 
+/**
+ * Generic two dimensional vector.
+ */
 typedef struct {
-    double x;
-    double y;
+    double x; // First component.
+    double y; // Second component.
 } Vector2;
 
 /** 
- * Adds two vectors.
+ * Add two vectors elementwise.
  * 
- * @param a first vector
- * @param b second vector
+ * @param a First vector.
+ * @param b Second vector.
+ * 
+ * @return The elementwise sum of both vectors.
  */
 static inline Vector2 vector2_add(Vector2 a, Vector2 b)
 {
@@ -21,10 +26,12 @@ static inline Vector2 vector2_add(Vector2 a, Vector2 b)
 }
 
 /** 
- * Subtracts two vectors.
+ * Subtract two vectors.
  * 
- * @param a first vector
- * @param b second vector
+ * @param a First vector.
+ * @param b Second vector.
+ * 
+ * @return The element-wise subtraction of a from b (a - b).
  */
 static inline Vector2 vector2_sub(Vector2 a, Vector2 b)
 {
@@ -33,10 +40,12 @@ static inline Vector2 vector2_sub(Vector2 a, Vector2 b)
 }
 
 /** 
- * Multiplies two vectors.
+ * Multiply two vectors.
  * 
- * @param a first vector
- * @param b second vector
+ * @param a First vector.
+ * @param b Second vector.
+ * 
+ * @return The element-wise multiplication of both vectors.
  */
 static inline Vector2 vector2_mul(Vector2 a, Vector2 b)
 {
@@ -45,10 +54,12 @@ static inline Vector2 vector2_mul(Vector2 a, Vector2 b)
 }
 
 /** 
- * Divides two vectors.
+ * Divide two vectors.
  * 
- * @param a first vector
- * @param b second vector
+ * @param a First vector.
+ * @param b Second vector.
+ * 
+ * @return The elementwise quotient of a and b (a / b).
  */
 static inline Vector2 vector2_div(Vector2 a, Vector2 b)
 {
@@ -57,10 +68,12 @@ static inline Vector2 vector2_div(Vector2 a, Vector2 b)
 }
 
 /** 
- * Calculates dot product of two vectors.
+ * Calculates the dot product of two vectors.
  * 
- * @param a first vector
- * @param b second vector
+ * @param a First vector.
+ * @param b Second vector.
+ * 
+ * @return The dot product (a.b).
  */
 static inline double vector2_dot(Vector2 a, Vector2 b)
 {
@@ -70,8 +83,10 @@ static inline double vector2_dot(Vector2 a, Vector2 b)
 /** 
  * Rotates a vector.
  * 
- * @param v
- * @param theta radians to rotate by
+ * @param v The vector to rotate.
+ * @param theta Radians to rotate by.
+ * 
+ * @return The rotated vector.
  */
 static inline Vector2 vector2_rot(Vector2 v, double theta)
 {
@@ -85,7 +100,8 @@ static inline Vector2 vector2_rot(Vector2 v, double theta)
 /** 
  * Returns vector magnitude.
  * 
- * @param v
+ * @param v The vector to determine the magnitude of.
+ * @return The vectors magnitude.
  */
 static inline double vector2_mag(Vector2 v)
 {
@@ -93,9 +109,10 @@ static inline double vector2_mag(Vector2 v)
 }
 
 /** 
- * Creates unit vector.
+ * Calculate unit vector.
  * 
- * @param v
+ * @param v The vector to calculate the unit vector from.
+ * @return The vectors unit vector.
  */
 static inline Vector2 vector2_unit(Vector2 v)
 {
@@ -105,10 +122,12 @@ static inline Vector2 vector2_unit(Vector2 v)
 }
 
 /** 
- * Creates projection of V on U
+ * Projection of a vector u onto a vector v.
  * 
- * @param v
- * @param u
+ * @param u Vector to project from.
+ * @param v Vector to project to.
+ * 
+ * @return Scalar of vector v that u is projected onto.
  */
 static inline Vector2 vector2_proj(Vector2 u, Vector2 v)
 {
