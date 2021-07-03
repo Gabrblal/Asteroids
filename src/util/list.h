@@ -162,11 +162,13 @@ bool list_find(List *list, void **element, bool(*func)(void*));
  * @param list The pointer to the list to search.
  * @param element A pointer to an element to copy into the successful element,
  * if any.
- * @param func The search function.
+ * @param func The applied function that takes the list element as the first
+ * argument and optional forwarded data as the second.
+ * @param data Optional data to forward to the applied function.
  * 
  * @returns If the function was applied to all elements.
  */
-bool list_apply(List *list, void(*func)(void*));
+bool list_apply(List *list, void(*func)(void*, void*), void *data);
 
 /**
  * Destroy a list. Using the list after calling this function on it is
