@@ -122,6 +122,14 @@ void view_resize_window(View *view, int x, int y);
 void view_move(View *view, Direction direction, bool state);
 
 /**
+ * Set the position of the view to the coordinate pos.
+ * 
+ * @param view Pointer to the view to set the position.
+ * @param pos The coordinate to set the position to.
+ */
+void view_set_position(View *view, Vector2 pos);
+
+/**
  * Draw a grid in the world space.
  * 
  * @param view The view to which to draw the grid.

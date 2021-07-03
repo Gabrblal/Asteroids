@@ -136,9 +136,25 @@ void spin_view_update_triangle(void *element, void *data)
     SDL_RenderDrawLine(view->renderer, p3.x,  p3.y, p1.x,  p1.y);
 }
 
-void spin_draw(View *view, void *spin)
+void spin_draw(View *view, void *data)
 {
-    spin_apply((Spin*)spin, spin_view_update_triangle, view);
+    Spin *spin = data;
+
+    SpinData *first = NULL;
+    list_at(spin->triangles, 0, (void*)&first);
+    double s1 = sin(first->theta1);
+    double c1 = cos(first->theta1);
+    double s2 = sin(first->theta2);
+    double c2 = cos(first->theta2);
+    double pos_x = first->pos.x * c2 - first->pos.y * s2;
+    double pos_y = first->pos.x * s2 + first->pos.y * c2;
+    Vector2 p1 = {
+        pos_x + first->p1.x * c1 - first->p1.y * s1,
+        pos_y + first->p1.x * s1 + first->p1.y * c1
+    };
+    view_set_position(view, p1);
+
+    spin_apply(spin, spin_view_update_triangle, view);
 }
 
 void spin_destroy(Spin *spin)

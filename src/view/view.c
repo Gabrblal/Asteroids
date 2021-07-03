@@ -10,7 +10,7 @@ View *view_create(
     void *data
 ) {
     // Prevent null pointers.
-    if (!window || !draw_function)
+    if (!window || !port || !draw_function)
         return NULL;
 
     // Allocate memory for the View data structure.
@@ -158,6 +158,14 @@ void view_move(View *view, Direction direction, bool state)
         case DIRECTION_OUT:   view_port_move_out(view->port,   state); break;
         default: break;
     }
+    SDL_UnlockMutex(view->mutex);
+}
+
+void view_set_position(View *view, Vector2 pos)
+{
+    SDL_LockMutex(view->mutex);
+    view->port->position.x = pos.x;
+    view->port->position.y = pos.y;
     SDL_UnlockMutex(view->mutex);
 }
 
