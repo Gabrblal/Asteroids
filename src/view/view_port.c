@@ -148,7 +148,7 @@ Vector2 view_port_to_world(ViewPort *port, Vector2 pixel)
     // right the position is from the centre.
     Vector2 world = {
         (port->position.x - port->dimensions.x) + pixel.x / port->screen.x * port->dimensions.x,
-        (port->position.y - port->dimensions.y) + pixel.y / port->screen.y * port->dimensions.y
+        (port->position.y + port->dimensions.y) - pixel.y / port->screen.y * port->dimensions.y
     };
     return world;
 }
@@ -158,7 +158,7 @@ Vector2 view_world_to_port(ViewPort *port, Vector2 coordinate)
     // Inverse of the above operation in view_port_to_world().
     Vector2 pixel = {
         (coordinate.x - port->position.x + port->dimensions.x) * port->screen.x / port->dimensions.x,
-        (coordinate.y - port->position.y + port->dimensions.y) * port->screen.y / port->dimensions.x
+        -(coordinate.y + port->position.y - port->dimensions.y) * port->screen.y / port->dimensions.x
     };
     return pixel;
 }

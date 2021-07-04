@@ -5,7 +5,7 @@
 
 #include "SDL2/SDL.h"
 #include "view/view.h"
-#include "spin/spin.h"
+#include "model/model.h"
 #include "util/vector2.h"
 
 /**
@@ -19,7 +19,7 @@ struct Controller {
     // Pointer to the view of the model.
     View *view;
     // Pointer to the model.
-    Spin *model;
+    Model *model;
     // If the controller should exit or not.
     bool done;
 };
@@ -43,7 +43,7 @@ Controller *controller_create()
     }
 
     // Create the model.
-    Spin *model = spin_create();
+    Model *model = model_create();
     if (!model) {
         printf("Failed to create spin model. Exiting.");
         SDL_DestroyWindow(window);
@@ -59,10 +59,10 @@ Controller *controller_create()
     );
 
     // Create the view of the model.
-    View *view = view_create(window, port, spin_draw, model);
+    View *view = view_create(window, port, model_draw, model);
     if (!view) {
         printf("Failed to create view. Exiting.");
-        spin_destroy(model);
+        model_destroy(model);
         SDL_DestroyWindow(window);
         return NULL;
     }
@@ -72,7 +72,7 @@ Controller *controller_create()
     if (!controller) {
         printf("Failed to create controller. Exiting.");
         view_destroy(view);
-        spin_destroy(model);
+        model_destroy(model);
         SDL_DestroyWindow(window);
         return NULL;
     }
@@ -209,7 +209,7 @@ void controller_destroy(Controller *controller)
 
     // Destroy everything in the controller.
     view_destroy(controller->view);
-    spin_destroy(controller->model);
+    model_destroy(controller->model);
     SDL_DestroyWindow(controller->window);
 
     // Free controller memory.
