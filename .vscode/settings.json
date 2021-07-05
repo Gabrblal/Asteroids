@@ -1,4 +1,5 @@
 {
     "terminal.integrated.defaultProfile.windows": "Command Prompt",
-    "debug.onTaskErrors": "abort"
+    "debug.onTaskErrors": "abort",
+    "C_Cpp.autoAddFileAssociations": false
 }
