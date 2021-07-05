@@ -95,7 +95,7 @@ void view_port_update(ViewPort *view_port)
 
     if (m->up != m->down) {
         // Accelerate
-        m->v_y += m->down ? m->a : -m->a;
+        m->v_y += m->up ? m->a : -m->a;
 
         // Check bounds
         if (fabs(m->v_y) > m->v_max) {
@@ -158,7 +158,7 @@ Vector2 view_world_to_port(ViewPort *port, Vector2 coordinate)
     // Inverse of the above operation in view_port_to_world().
     Vector2 pixel = {
         (coordinate.x - port->position.x + port->dimensions.x) * port->screen.x / port->dimensions.x,
-        -(coordinate.y + port->position.y - port->dimensions.y) * port->screen.y / port->dimensions.x
+        (-coordinate.y + port->position.y + port->dimensions.y) * port->screen.y / port->dimensions.x
     };
     return pixel;
 }
