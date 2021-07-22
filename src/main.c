@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "controller.h"
-#include "util/timer.h"
+#include "util/time.h"
 
 int main(int argc, char* argv[])
 {

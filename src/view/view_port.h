@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "util/vector2.h"
+#include "util/time.h"
 
 /**
  * Description of how the view port is moving, is it moving up or down, left or
@@ -66,7 +67,7 @@ struct ViewPort {
  * 
  * @param position Where the view port should be located initially.;
  * @param dimensions Half the rectangular dimensions of the area seen by the view.
- * @param screen Half the screen dimensions in pixels.
+ * @param screen The screen dimensions in pixels.
  * @param acceleration The view's acceleration as a percentage of it's
  * dimensions.
  * @param max_velocity The maximum speed of the view as a percentage of it's
