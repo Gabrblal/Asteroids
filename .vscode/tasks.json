@@ -24,7 +24,7 @@
 			},
 			"options": { "cwd": "${workspaceFolder}/scripts" },
 			"windows": { "command": "compile.bat", },
-			"linux"  : { "command": "compile.bash" }
+			"linux"  : { "command": "./compile.bash" }
 		},
 		{
 			"label": "Asteroids: Configure Build Directory",
@@ -32,7 +32,7 @@
 			"problemMatcher": "",
 			"options": { "cwd": "${workspaceFolder}/scripts" },
 			"windows": { "command": "configure.bat" },
-			"linux"  : { "command": "configure.bash"}
+			"linux"  : { "command": "./configure.bash"}
 		}
 	]
 }
