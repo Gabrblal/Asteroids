@@ -133,10 +133,12 @@ void view_port_update(ViewPort *view_port)
         }
     }
 
-    view_port->position.x += m->v_x * view_port->dimensions.x;
-    view_port->position.y += m->v_y * view_port->dimensions.y;
-    view_port->dimensions.x *= 1.0 + m->v_z;
-    view_port->dimensions.y *= 1.0 + m->v_z;
+    double dt = time_since_last(&view_port->time) * 0.001;
+
+    view_port->position.x += m->v_x * view_port->dimensions.x * dt;
+    view_port->position.y += m->v_y * view_port->dimensions.y * dt;
+    view_port->dimensions.x *= 1.0 + m->v_z * dt;
+    view_port->dimensions.y *= 1.0 + m->v_z * dt;
 }
 
 Vector2 view_port_to_world(ViewPort *port, Vector2 pixel)

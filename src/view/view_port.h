@@ -59,6 +59,8 @@ struct ViewPort {
     double zoom;
     // The current movement of the view port.
     ViewPortMovement movement;
+    // Time the view port was last updated.
+    Time time;
 };
 
 /**

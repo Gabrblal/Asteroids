@@ -54,8 +54,8 @@ Controller *controller_create()
         (Vector2){0.0, 0.0},
         (Vector2){2.0, 2.0},
         (Vector2){WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2},
-        0.0008,
-        0.02
+        0.1,
+        3
     );
 
     // Create the view of the model.
