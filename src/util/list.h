@@ -144,6 +144,15 @@ bool list_back(const List *list, void **element);
 bool list_insert(List *list, size_t index, void *element);
 
 /**
+ * Function prototype to provide to list_find, to find the first element in the
+ * list for which the function returns true.
+ * 
+ * @param element The element in the list to check.
+ * @return If the element satisfies the found requirement.
+ */
+typedef bool(ListFindFunction)(void *element);
+
+/**
  * Find an element in the list such that the provided search function returns
  * true.
  * 
@@ -154,7 +163,15 @@ bool list_insert(List *list, size_t index, void *element);
  * 
  * @returns If the element was found.
  */
-bool list_find(List *list, void **element, bool(*func)(void*));
+bool list_find(List *list, void **element, ListFindFunction func);
+
+/**
+ * Function prototyple to provide to list_apply.
+ * 
+ * @param element The list element the function is being applied to.
+ * @param data Optional forwarded data from list_apply.
+ */
+typedef void(ListApplyFunction)(void *element, void *data);
 
 /**
  * Apply a function to all elements in the list from front to back.
@@ -168,7 +185,7 @@ bool list_find(List *list, void **element, bool(*func)(void*));
  * 
  * @returns If the function was applied to all elements.
  */
-bool list_apply(List *list, void(*func)(void*, void*), void *data);
+bool list_apply(List *list, ListApplyFunction func, void *data);
 
 /**
  * Destroy a list. Using the list after calling this function on it is
