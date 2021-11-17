@@ -5,37 +5,77 @@
 #include <stdint.h>
 
 struct Array {
-    uint8_t *buffer;
+    void *buffer;
     size_t size;
     size_t length;
-    size_t space;
-    size_t min_space;
-    size_t max_space;
+    size_t capacity;
 };
 
-Array *array_create(size_t size, size_t min_space, size_t max_space)
+Array *array_create(size_t size)
 {
-    assert(max_space > min_space);
     assert(size > 0);
 
     Array *array = malloc(sizeof(Array));
     if (!array)
         return NULL;
 
-    array->buffer = malloc(size * max_space);
-    if (!array->buffer) {
-        free(array);
-        return NULL;
-    }
-
     // Set variables.
+    array->buffer = NULL;
     array->size = size;
     array->length = 0;
-    array->space = max_space;
-    array->max_space = max_space;
-    array->min_space = min_space;
+    array->capacity = 0;
 
     return array;
+}
+
+bool array_at(Array *array, int index, void **element)
+{
+    // Ensure the index is in range.
+    if (!array || index < 0 || index >= array->length)
+        return false;
+
+    // Set the pointer to point to the provided element at the index.
+    *element = (uint8_t*)array->buffer + array->size * index;
+
+    return true;
+}
+
+bool array_front(Array *array, void **element)
+{
+    // There is no front element if the array length is 0.
+    if (!array || !element || array->length == 0)
+        return false;
+
+    // Set the element pointer.
+    *element = array->buffer;
+
+    return true;
+}
+
+bool array_back(Array *array, void **element)
+{
+    if (!array || array->length == 0)
+        return false;
+
+    // Set the pointer to point to the last element.
+    *element = (uint8_t*)array->buffer + array->size * (array->length - 1);
+
+    return true;
+}
+
+void *array_data(Array *array)
+{
+    return array->buffer;
+}
+
+bool array_empty(Array *array)
+{
+    return array->length == 0;
+}
+
+int array_length(Array *array)
+{
+    return array->length;
 }
 
 bool array_push_back(Array *array, void *element)
@@ -43,34 +83,58 @@ bool array_push_back(Array *array, void *element)
     if (!array || !element)
         return false;
 
-    // Verify the constraint min_size <= space <= max_size
-    if (array->space - 1 < array->min_space) {
+    // Check whether to allocate more memory.
+    if (array->length + 1 > array->capacity) {
+        int capacity = array->capacity ? array->capacity << 1 : 1;
 
-        // Reallocate the buffer to satisfy the constraint.
-        int difference = array->max_space - (array->min_space + 1);
-        uint8_t *buffer = realloc(
+        size_t *reallocated = realloc(
             array->buffer,
-            array->size * (array->length + difference)
+            capacity * array->size
         );
 
-        // If we were unable to realloc, indicate failure.
-        if (!buffer)
+        if (!reallocated)
             return false;
 
-        // Set new values.
-        array->buffer = buffer;
-        array->space =  array->max_space;
-    }
-    else {
-        array->space--;
+        array->buffer = reallocated;
+        array->capacity = capacity;
     }
 
+    // Copy the element into the next available position.
     memcpy(
-        array->buffer + array->size * array->length,
+        (uint8_t*)array->buffer + array->size * array->length,
         element,
         array->size
     );
     array->length++;
+
+    return true;
+}
+
+bool array_pop_back(Array *array, void *element)
+{
+    if (!array || !element || array->length <= 0)
+        return false;
+
+    memcpy(
+        element,
+        (uint8_t*)array->buffer + array->size * (array->length - 1),
+        array->size
+    );
+    array->length--;
+
+    // Check if we can free memory. Occurs when we have enough elements to fit
+    // into the below power of 2 capacity.
+    if (array->length <= (array->capacity >> 1)) {
+        size_t *reallocated = realloc(
+            array->buffer,
+            (array->capacity >> 1) * array->size
+        );
+
+        if (!reallocated && array->length != 0)
+            return false;
+
+        array->capacity >>= 1;
+    }
 
     return true;
 }

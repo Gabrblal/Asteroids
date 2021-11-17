@@ -1,5 +1,5 @@
-#ifndef VARARRAY_H
-#define VARARRAY_H
+#ifndef ARRAY_H
+#define ARRAY_H
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -10,14 +10,9 @@ typedef struct Array Array;
  * Create a new variably sized array.
  * 
  * @param size The element size of the array.
- * @param min_space The minimum number of extra element spaces in the array
- * before allocating more space.
- * @param max_space The maximum number of elements to allow for for in the
- * array on allocating more space.
- * 
  * @returns Pointer to the variably sized array on success, or false on failure.
  */
-Array *array_create(size_t size, size_t min_space, size_t max_space);
+Array *array_create(size_t size);
 
 /**
  * Get an element from the array at the provided index, and assign it to
@@ -118,7 +113,7 @@ bool array_push_back(Array *array, void *element);
  * 
  * @returns True on success, false on out of bounds or failure.
  */
-bool array_pop_back(Array *array, void **element);
+bool array_pop_back(Array *array, void *element);
 
 /**
  * Erase an element from the array at the provided index.
@@ -166,4 +161,4 @@ void array_apply(Array *array, ArrayApplyFunction func, void *data);
  */
 void array_destroy(Array *array);
 
-#endif // VARARRAY_H
+#endif // ARRAY_H
