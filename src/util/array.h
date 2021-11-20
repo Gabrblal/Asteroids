@@ -130,7 +130,7 @@ bool array_erase(Array *array, int index);
  * 
  * @param array The array to erase to elements from.
  * @param index_from The left hand side index to erase from (included).
- * @param index_to The right hand side index to erase to (included).
+ * @param index_to The right hand side index to erase to (excluded).
  * 
  * @returns True on success, false on failure.
  */
