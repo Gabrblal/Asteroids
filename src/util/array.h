@@ -15,6 +15,22 @@ typedef struct Array Array;
 Array *array_create(size_t size);
 
 /**
+ * Allocate space in the array. Useful for preallocating space when a number of
+ * elements are known to be added to reduce system memory allocation
+ * calls.
+ * 
+ * Preallocated memory will be freed if not used on the next call to remove an
+ * element from the array.
+ * 
+ * @param array The array to allocate memory for.
+ * @param n The number of elements to be added to the array to preallocate.
+ * Only adds to the current allocation, does not free memory.
+ * 
+ * @returns If the memory was successfully allocated.
+ */
+bool array_allocate(Array *array, int n);
+
+/**
  * Get an element from the array at the provided index, and assign it to
  * the provided element pointer.
  * 
