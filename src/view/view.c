@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <math.h>
 
+#include "util/vector.h"
+
 View *view_create(
     SDL_Window *window,
     ViewPort *port,
@@ -141,7 +143,7 @@ void view_resize_window(View *view, int x, int y)
         -1,
         SDL_RENDERER_ACCELERATED
     );
-    view->port->screen = (Vector2){x / 2, y / 2};
+    view->port->screen = (Vector){x / 2, y / 2};
     SDL_UnlockMutex(view->mutex);
 }
 
@@ -161,7 +163,7 @@ void view_move(View *view, Direction direction, bool state)
     SDL_UnlockMutex(view->mutex);
 }
 
-void view_set_position(View *view, Vector2 pos)
+void view_set_position(View *view, Vector pos)
 {
     SDL_LockMutex(view->mutex);
     view->port->position.x = pos.x;
@@ -182,14 +184,14 @@ void view_draw_grid(View *view)
     SDL_SetRenderDrawColor(view->renderer, 50, 50, 50, SDL_ALPHA_OPAQUE);
 
     for (int x = round(x1), end = round(x2) + 1; x < end; x++) {
-        Vector2 p1 = view_world_to_port(view->port, (Vector2){x, y1});
-        Vector2 p2 = view_world_to_port(view->port, (Vector2){x, y2});
+        Vector p1 = view_world_to_port(view->port, (Vector){x, y1});
+        Vector p2 = view_world_to_port(view->port, (Vector){x, y2});
         SDL_RenderDrawLine(view->renderer, p1.x,  p1.y, p2.x,  p2.y);
     }
 
     for (int y = round(y1), end = round(y2) + 1; y < end; y++) {
-        Vector2 p1 = view_world_to_port(view->port, (Vector2){x1, y});
-        Vector2 p2 = view_world_to_port(view->port, (Vector2){x2, y});
+        Vector p1 = view_world_to_port(view->port, (Vector){x1, y});
+        Vector p2 = view_world_to_port(view->port, (Vector){x2, y});
         SDL_RenderDrawLine(view->renderer, p1.x,  p1.y, p2.x,  p2.y);
     }
 }

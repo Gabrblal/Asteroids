@@ -4,14 +4,14 @@
 
 #include "SDL2/SDL.h"
 #include "util/list.h"
-#include "util/vector2.h"
+#include "util/vector.h"
 
 /**
  * The possible state of the modelning line.
  */
 typedef struct {
-    Vector2 u;
-    Vector2 v;
+    Vector u;
+    Vector v;
     double theta;
     double omega;
 } ModelData;
@@ -35,8 +35,8 @@ Model *model_create()
     // Allocate a buffer for the model structure.
     Model *model = malloc(sizeof(Model));
 
-    model->data.u = (Vector2){1.5 * M_PI_4, 1.5 * M_PI_4};
-    model->data.v = (Vector2){M_PI_4, M_PI_4};
+    model->data.u = (Vector){1.5 * M_PI_4, 1.5 * M_PI_4};
+    model->data.v = (Vector){M_PI_4, M_PI_4};
     model->data.theta = M_PI_4;
     model->data.omega = 0.00000005;
 
@@ -98,14 +98,14 @@ void model_draw(View *view, void *data)
     Model *model = data;
 
     // Get the centre point.
-    Vector2 rotated = vector2_rot(model->data.u, model->data.theta);
+    Vector rotated = vector_rot(model->data.u, model->data.theta);
 
-    Vector2 c =  view_world_to_port(view->port, (Vector2){0, 0});
-    Vector2 u = view_world_to_port(view->port, rotated);
-    Vector2 v = view_world_to_port(view->port, model->data.v);
-    Vector2 proj = view_world_to_port(
+    Vector c =  view_world_to_port(view->port, (Vector){0, 0});
+    Vector u = view_world_to_port(view->port, rotated);
+    Vector v = view_world_to_port(view->port, model->data.v);
+    Vector proj = view_world_to_port(
         view->port,
-        vector2_proj(rotated, model->data.v)
+        vector_proj(rotated, model->data.v)
     );
 
     SDL_SetRenderDrawColor(view->renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);

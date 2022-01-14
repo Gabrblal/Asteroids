@@ -3,7 +3,6 @@
 
 #include "SDL2/SDL.h"
 #include "util/definitions.h"
-#include "util/vector2.h"
 #include "view/view_port.h"
 
 /**
@@ -127,7 +126,7 @@ void view_move(View *view, Direction direction, bool state);
  * @param view Pointer to the view to set the position.
  * @param pos The coordinate to set the position to.
  */
-void view_set_position(View *view, Vector2 pos);
+void view_set_position(View *view, Vector pos);
 
 /**
  * Draw a grid in the world space.
