@@ -51,11 +51,6 @@ Time time_since_last(Time *time)
     return elapsed;
 }
 
-void time_destroy(Time *time)
-{
-    free(time);
-}
-
 void time_deinitialise()
 {
     SDL_DestroyMutex(s_time_mutex);
