@@ -4,7 +4,12 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-typedef struct Array Array;
+typedef struct {
+    void *buffer;
+    size_t size;
+    size_t length;
+    size_t capacity;
+ } Array;
 
 /**
  * Create a new variably sized array.
