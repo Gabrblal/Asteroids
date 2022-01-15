@@ -4,6 +4,7 @@
 
 #include "controller.h"
 #include "util/time.h"
+#include "util/random.h"
 
 int main(int argc, char* argv[])
 {
@@ -14,8 +15,9 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    // Initialise the timer interface.
+    // Initialise utilities.
     time_initialise();
+    random_initialise();
 
     // Create the controller, run the controller event handling thread and
     // then destroy the controller, that cascades to destroy the rest of the
@@ -25,8 +27,9 @@ int main(int argc, char* argv[])
     controller_thread(controller);
     controller_destroy(controller);
 
-    // Deinitialise the timer interface.
+    // Deinitialise utilities.
     time_deinitialise();
+    random_deinitialise();
 
     // Deinitialise SDL.
     SDL_Quit();
