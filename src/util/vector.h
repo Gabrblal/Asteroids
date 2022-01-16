@@ -136,4 +136,16 @@ static inline Vector vector_proj(Vector u, Vector v)
     return proj_v_u;
 }
 
+/**
+ * Calculate the vector perpendicular to v.
+ * 
+ * @param v The vector to get the perpendicular of.
+ * @return The perpendicular vector.
+ */
+static inline Vector vector_perp(Vector v)
+{
+    Vector perp = {v.y, -v.x};
+    return perp;
+}
+
 #endif // VECTOR_H
