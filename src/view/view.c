@@ -1,7 +1,7 @@
 #include "view.h"
 
-#include <stdio.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "util/vector.h"
 
@@ -31,82 +31,44 @@ View *view_create(
 
     // Populate the view data structure.
     view->window = window;
-    view->mutex = SDL_CreateMutex();
-    view->draw_condition = SDL_CreateCond();
-    view->fps = 0;
     view->port = port;
-    view->done_mutex = SDL_CreateMutex();
-    view->done = false;
+    view->mutex = SDL_CreateMutex();
     view->draw_function = draw_function;
     view->data = data;
 
-    // Add a timer, that calls back to the view_notify_callback() function
-    // every 7 milliseconds (approximately 144Hz).
-    view->framerate_control_timer = SDL_AddTimer(7, view_notify_callback, view);
-
-    // Print framerate every second.
+    // Print framerate every second
+    view->fps = 0;
     view->fps_counter_timer = SDL_AddTimer(1000, view_fps_counter_callback, view);
 
-    // Success! Start the drawing thread and return the view.
-    view->thread = SDL_CreateThread(view_thread, NULL, view);
+    // Start the view thread.
+    view->thread = interval_thread_create(view_draw, view, 7);
 
     return view;
 }
 
-int view_thread(void *data)
+void view_draw(void *data)
 {
     View *view = data;
+    SDL_LockMutex(view->mutex);
 
-    while (!view_done(view)) {
-        SDL_LockMutex(view->mutex);
+    // Clear the screen
+    SDL_SetRenderDrawColor(view->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(view->renderer);
 
-        // Clear the screen
-        SDL_SetRenderDrawColor(view->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-        SDL_RenderClear(view->renderer);
+    // Update the view.
+    view_port_update(view->port);
+    view_draw_grid(view);
 
-        // Update the view.
-        view_port_update(view->port);
-        view_draw_grid(view);
+    // Call the drawing callback function.
+    view->draw_function(view, view->data);
 
-        // Call the drawing callback function.
-        view->draw_function(view, view->data);
+    // Draw!
+    SDL_RenderPresent(view->renderer);
 
-        // Draw!
-        SDL_RenderPresent(view->renderer);
-        view->fps++;
+    // Increment the frame count.
+    view->fps++;
 
-        // Wait until we should draw the next frame.
-        SDL_CondWait(view->draw_condition, view->mutex);
-
-        // After this call the mutex is locked, and will be locked a second time
-        // at the top of loop. SDL mutexes are recursive (must unlock for every
-        // lock called on a mutex), so we must unlock it again.
-        SDL_UnlockMutex(view->mutex);
-    }
-
-    return 0;
-}
-
-void view_notify(View *view)
-{
-    // Signal view thread to draw.
-    SDL_CondBroadcast(view->draw_condition);
-}
-
-bool view_done(View *view)
-{
-    // Retrieve the state of the done flag under mutex.
-    SDL_LockMutex(view->done_mutex);
-    bool done = view->done;
-    SDL_UnlockMutex(view->done_mutex);
-
-    return done;
-}
-
-uint32_t view_notify_callback(uint32_t interval, void *data)
-{
-    view_notify(data);
-    return interval;
+    SDL_UnlockMutex(view->mutex);
 }
 
 uint32_t view_fps_counter_callback(uint32_t interval, void *data)
@@ -202,20 +164,14 @@ void view_destroy(View *view)
         return;
 
     // Notify and wait for drawing thread to terminate.
-    SDL_LockMutex(view->done_mutex);
-    view->done = true;
-    SDL_UnlockMutex(view->done_mutex);
-    view_notify(view);
-    SDL_WaitThread(view->thread, NULL);
+    interval_thread_destroy(view->thread);
 
     // Stop the condition variable being triggered.
-    SDL_RemoveTimer(view->framerate_control_timer);
     SDL_RemoveTimer(view->fps_counter_timer);
 
     // Destroy the view.
     SDL_DestroyRenderer(view->renderer);
     SDL_DestroyMutex(view->mutex);
-    SDL_DestroyCond(view->draw_condition);
-    SDL_DestroyMutex(view->done_mutex);
+
     free(view);
 }
