@@ -13,37 +13,13 @@ typedef struct Model Model;
 Model *model_create();
 
 /**
- * Apply a function to all triangles
- * 
- * @param func The function to apply.
- * @param data Optional data to pass to the function.
- */
-void model_apply(Model *model, void(*func)(void *, void *), void *data);
-
-/**
- * Checks if the model thread should exit. 
- * 
- * Thread safe.
- * 
- * @param model The model instance to check if it has exited.
- */
-bool model_done(Model *model);
-
-/**
  * Advance the model. Called continuously by spin_thread(). 
  * 
  * Thread safe.
  * 
  * @param model The model instance to advance by one step.
  */
-void model_increment(Model *model);
-
-/**
- * The thread function the model is simulated in. 
- * 
- * @param data Pointer to a buffer to pass to the thread function (Model*).
- */
-int model_thread(void *data);
+void model_increment(void *model);
 
 /**
  * Draw the model object to a renderer.
