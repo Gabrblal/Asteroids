@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-#include "util/vector2.h"
+#include "util/vector.h"
 #include "util/time.h"
 
 /**
@@ -49,12 +49,12 @@ struct ViewPortMovement {
 typedef struct ViewPort ViewPort;
 struct ViewPort {
     // The position of the view port in world space (meters).
-    Vector2 position;
+    Vector position;
     // The radius of the rectangular region of space seen in the world
     // (meters). That is half the width and half the height of the view port.
-    Vector2 dimensions;
+    Vector dimensions;
     // The dimensions of the screen.
-    Vector2 screen;
+    Vector screen;
     // Zoom of the view port relative to the initial state.
     double zoom;
     // The current movement of the view port.
@@ -77,9 +77,9 @@ struct ViewPort {
  * @return A pointer to the new ViewPort instance.
  */
 ViewPort *view_port_create(
-    Vector2 position,
-    Vector2 dimensions,
-    Vector2 screen,
+    Vector position,
+    Vector dimensions,
+    Vector screen,
     double acceleration,
     double max_velocity
 );
@@ -127,7 +127,7 @@ void view_port_update(ViewPort *view);
  * 
  * @return The world coordinate of the pixel.
  */
-Vector2 view_port_to_world(ViewPort *view, Vector2 pixel);
+Vector view_port_to_world(ViewPort *view, Vector pixel);
 
 /**
  * Transform a world coordinate to a pixel on the screen.
@@ -136,7 +136,7 @@ Vector2 view_port_to_world(ViewPort *view, Vector2 pixel);
  * 
  * @return The pixel on the screen for the world coordinate.
  */
-Vector2 view_world_to_port(ViewPort *view, Vector2 coordinate);
+Vector view_world_to_port(ViewPort *view, Vector coordinate);
 
 /**
  * Destroy a view port. Using the view port after this function is called on

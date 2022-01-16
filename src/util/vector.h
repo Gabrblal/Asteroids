@@ -1,5 +1,5 @@
-#ifndef VECTOR2_H
-#define VECTOR2_H
+#ifndef VECTOR_H
+#define VECTOR_H
 
 #include <math.h>
 
@@ -9,7 +9,7 @@
 typedef struct {
     double x; // First component.
     double y; // Second component.
-} Vector2;
+} Vector;
 
 /** 
  * Add two vectors elementwise.
@@ -19,9 +19,9 @@ typedef struct {
  * 
  * @return The elementwise sum of both vectors.
  */
-static inline Vector2 vector2_add(Vector2 a, Vector2 b)
+static inline Vector vector_add(Vector a, Vector b)
 {
-    Vector2 c = {a.x + b.x, a.y + b.y};
+    Vector c = {a.x + b.x, a.y + b.y};
     return c;
 }
 
@@ -33,9 +33,9 @@ static inline Vector2 vector2_add(Vector2 a, Vector2 b)
  * 
  * @return The element-wise subtraction of a from b (a - b).
  */
-static inline Vector2 vector2_sub(Vector2 a, Vector2 b)
+static inline Vector vector_sub(Vector a, Vector b)
 {
-    Vector2 c = {a.x - b.x, a.y - b.y};
+    Vector c = {a.x - b.x, a.y - b.y};
     return c;
 }
 
@@ -47,9 +47,9 @@ static inline Vector2 vector2_sub(Vector2 a, Vector2 b)
  * 
  * @return The element-wise multiplication of both vectors.
  */
-static inline Vector2 vector2_mul(Vector2 a, Vector2 b)
+static inline Vector vector_mul(Vector a, Vector b)
 {
-    Vector2 c = {a.x * b.x, a.y * b.y};
+    Vector c = {a.x * b.x, a.y * b.y};
     return c;
 }
 
@@ -61,9 +61,9 @@ static inline Vector2 vector2_mul(Vector2 a, Vector2 b)
  * 
  * @return The elementwise quotient of a and b (a / b).
  */
-static inline Vector2 vector2_div(Vector2 a, Vector2 b)
+static inline Vector vector_div(Vector a, Vector b)
 {
-    Vector2 c = {a.x / b.x, a.y / b.y};
+    Vector c = {a.x / b.x, a.y / b.y};
     return c;
 }
 
@@ -75,7 +75,7 @@ static inline Vector2 vector2_div(Vector2 a, Vector2 b)
  * 
  * @return The dot product (a.b).
  */
-static inline double vector2_dot(Vector2 a, Vector2 b)
+static inline double vector_dot(Vector a, Vector b)
 {
     return a.x * b.x + a.y * b.y;
 }
@@ -88,9 +88,9 @@ static inline double vector2_dot(Vector2 a, Vector2 b)
  * 
  * @return The rotated vector.
  */
-static inline Vector2 vector2_rot(Vector2 v, double theta)
+static inline Vector vector_rot(Vector v, double theta)
 {
-    Vector2 rv = {
+    Vector rv = {
         v.x * cos(theta) - v.y * sin(theta),
         v.x * sin(theta) + v.y * cos(theta)
     };
@@ -103,7 +103,7 @@ static inline Vector2 vector2_rot(Vector2 v, double theta)
  * @param v The vector to determine the magnitude of.
  * @return The vectors magnitude.
  */
-static inline double vector2_mag(Vector2 v)
+static inline double vector_mag(Vector v)
 {
     return sqrt(pow(v.x, 2) + pow(v.y, 2)); 
 }
@@ -114,10 +114,10 @@ static inline double vector2_mag(Vector2 v)
  * @param v The vector to calculate the unit vector from.
  * @return The vectors unit vector.
  */
-static inline Vector2 vector2_unit(Vector2 v)
+static inline Vector vector_unit(Vector v)
 {
-    double mag = vector2_mag(v);
-    Vector2 unit = {v.x / mag, v.y / mag};
+    double mag = vector_mag(v);
+    Vector unit = {v.x / mag, v.y / mag};
     return unit;
 }
 
@@ -129,11 +129,23 @@ static inline Vector2 vector2_unit(Vector2 v)
  * 
  * @return Scalar of vector v that u is projected onto.
  */
-static inline Vector2 vector2_proj(Vector2 u, Vector2 v)
+static inline Vector vector_proj(Vector u, Vector v)
 {
-    double scalar = vector2_dot(u, v) / pow(vector2_mag(v), 2);
-    Vector2 proj_v_u = {v.x * scalar, v.y * scalar};
+    double scalar = vector_dot(u, v) / pow(vector_mag(v), 2);
+    Vector proj_v_u = {v.x * scalar, v.y * scalar};
     return proj_v_u;
 }
 
-#endif // VECTOR2_H
+/**
+ * Calculate the vector perpendicular to v.
+ * 
+ * @param v The vector to get the perpendicular of.
+ * @return The perpendicular vector.
+ */
+static inline Vector vector_perp(Vector v)
+{
+    Vector perp = {v.y, -v.x};
+    return perp;
+}
+
+#endif // VECTOR_H

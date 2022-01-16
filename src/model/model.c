@@ -1,89 +1,99 @@
 #include "model/model.h"
 
 #include <math.h>
+#include <stdio.h>
 
 #include "SDL2/SDL.h"
-#include "util/list.h"
-#include "util/vector2.h"
 
-/**
- * The possible state of the modelning line.
- */
-typedef struct {
-    Vector2 u;
-    Vector2 v;
-    double theta;
-    double omega;
-} ModelData;
+#include "util/array.h"
+#include "util/random.h"
+#include "util/vector.h"
+#include "util/intervalthread.h"
+#include "model/polygon.h"
 
 /**
  * Struct containing Model control related data.
  */
 struct Model {
-    // Mutex protecting concurrent access to the Model control data.
+    Array *polygons;
+    Array *colliding;
     SDL_mutex *mutex;
-    // Thread simulating the model.
-    SDL_Thread *thread;
-    // Model data.
-    ModelData data;
-    // Flag indicating for the model thread to exit.
-    bool done;
+    IntervalThread *thread;
 };
 
 Model *model_create()
 {
+    // Seed random for this thread.
+    random_seed();
+
     // Allocate a buffer for the model structure.
     Model *model = malloc(sizeof(Model));
+    if (!model)
+        return NULL;
 
-    model->data.u = (Vector2){1.5 * M_PI_4, 1.5 * M_PI_4};
-    model->data.v = (Vector2){M_PI_4, M_PI_4};
-    model->data.theta = M_PI_4;
-    model->data.omega = 0.00000005;
+    Array *polygons = array_create(sizeof(Array));
+    Array *colliding = array_create(sizeof(bool));
 
-    // Set model variables.
+    for (int i = 0; i < 5; ++i) {
+
+        // Create a random polygon.
+        Array *polygon = polygon_create_random_regular(1.0);
+
+        Vector position = {random_double(-5, 5), random_double(-5, 5)};
+        for (int i = 0; i < array_length(polygon); i++) {
+
+            // Get the vertex.
+            Vector *p = NULL;
+            array_at(polygon, i, (void*)&p);
+
+            // Offset the vertex by the position.
+            *p = vector_add(*p, position);
+        }
+
+        array_push_back(polygons, polygon);
+
+        bool t = false;
+        array_push_back(colliding, &t);
+    }
+
+    model->polygons = polygons;
+    model->colliding = colliding;
     model->mutex = SDL_CreateMutex();
-    model->done = false;
-
-    // Create and start the model thread.
-    model->thread = SDL_CreateThread(model_thread, NULL, model);
+    model->thread = interval_thread_create(model_increment, model, 7);
 
     return model;
 }
 
-bool model_done(Model *model)
-{
-    // Lock access to the model data and access if the model thread has finished
-    // for this Model object.
-    SDL_LockMutex(model->mutex);
-    bool done = model->done;
-    SDL_UnlockMutex(model->mutex);
-
-    return done;
-}
-
-void model_increment(Model *model)
-{
-    // Lock access to the model data and advance the model.
-    SDL_LockMutex(model->mutex);
-    model->data.theta += model->data.omega;
-    if (model->data.theta > 2 * M_PI) {
-        model->data.theta = 0;
-    }
-    SDL_UnlockMutex(model->mutex);
-}
-
-int model_thread(void *data)
+void model_increment(void *data)
 {
     Model *model = data;
-    while (true)
-    {
-        // If the thread should exit, then return.
-        if (model_done(model))
-            return 0;
 
-        // Advance the model.
-        model_increment(model);
+    // Lock access to the model data and advance the model.
+    SDL_LockMutex(model->mutex);
+
+    Array *polygons = array_data(model->polygons);
+    bool *colliding = array_data(model->colliding);
+    int n = array_length(model->polygons);
+
+    for (int i = 0; i < n; i++) {
+        Array *A = polygons + i;
+
+        for (int j = 0; j < n; j++) {
+
+            // Skip checking if the same polygon is colliding with itself.
+            if (i == j)
+                continue;
+
+            Array *B = polygons + j;
+
+            bool is_colliding = false;
+            polygon_colliding(A, B, &is_colliding);
+
+            *(colliding + i) |= is_colliding;
+        }
     }
+
+    SDL_UnlockMutex(model->mutex);
 }
 
 void model_apply(Model *model, void(*func)(void*, void*), void *data)
@@ -93,40 +103,86 @@ void model_apply(Model *model, void(*func)(void*, void*), void *data)
     SDL_UnlockMutex(model->mutex);
 }
 
+void model_draw_polygon(
+    View *view,
+    Array *polygon
+) {
+    Vector *a = NULL;
+    Vector *b = NULL;
+
+    if (!array_at(polygon, 0, (void*)&a))
+        return;
+
+    for (int i = 0; i < array_length(polygon); i++) {
+
+        // Get the second coordinate.
+        if (!array_at(polygon, (i + 1) % array_length(polygon), (void*)&b))
+            return;
+
+        Vector a_pixel = view_world_to_port(view->port, *a);
+        Vector b_pixel = view_world_to_port(view->port, *b);
+
+        SDL_RenderDrawLine(
+            view->renderer,
+            a_pixel.x, 
+            a_pixel.y,
+            b_pixel.x, 
+            b_pixel.y
+        );
+
+        a = b;
+    }
+}
+
 void model_draw(View *view, void *data)
 {
     Model *model = data;
+    SDL_LockMutex(model->mutex);
 
-    // Get the centre point.
-    Vector2 rotated = vector2_rot(model->data.u, model->data.theta);
+    // Dereference required data once.
+    Array *polygons = model->polygons;
 
-    Vector2 c =  view_world_to_port(view->port, (Vector2){0, 0});
-    Vector2 u = view_world_to_port(view->port, rotated);
-    Vector2 v = view_world_to_port(view->port, model->data.v);
-    Vector2 proj = view_world_to_port(
-        view->port,
-        vector2_proj(rotated, model->data.v)
-    );
-
+    // Set to white lines.
     SDL_SetRenderDrawColor(view->renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-    SDL_RenderDrawLine(view->renderer, c.x,  c.y, u.x,  u.y);
-    SDL_RenderDrawLine(view->renderer, c.x,  c.y, v.x,  v.y);
 
-    SDL_SetRenderDrawColor(view->renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
-    SDL_RenderDrawLine(view->renderer, c.x,  c.y, proj.x,  proj.y);
+    // For each polygon.
+    for (int i = 0; i < array_length(polygons); ++i) {
+        // Get the polygon.
+        Array *polygon = NULL;
+        array_at(polygons, i, (void*)&polygon);
+
+        bool *colliding = NULL;
+        array_at(model->colliding, i, (void*)&colliding);
+
+        if (*colliding)
+            SDL_SetRenderDrawColor(view->renderer, 255, 0, 0, 255);
+        else
+            SDL_SetRenderDrawColor(view->renderer, 255, 255, 255, 255);
+
+        // Draw it.
+        model_draw_polygon(view, polygon);
+    }
+
+    SDL_UnlockMutex(model->mutex);
 }
 
 void model_destroy(Model *model)
 {
-    // Indicate that the model model should be stopped.
-    SDL_LockMutex(model->mutex);
-    model->done = true;
-    SDL_UnlockMutex(model->mutex);
+    interval_thread_destroy(model->thread);
 
-    // Wait for the thread to exit
-    SDL_WaitThread(model->thread, NULL);
+    // Destroy the polygons.
+    for (int i = 0; i < array_length(model->polygons); i++) {
+        Array *polygon = NULL;
 
-    // Deallocate.
-    SDL_DestroyMutex(model->mutex);
+        if (!array_at(model->polygons, 0, (void*)&polygon))
+            break;
+
+        free(polygon);
+    }
+
+    // Deallocate the arrays.
+    array_destroy(model->polygons);
+    array_destroy(model->colliding);
+
     free(model);
 }

@@ -2,8 +2,9 @@
 #define VIEW_H
 
 #include "SDL2/SDL.h"
+
 #include "util/definitions.h"
-#include "util/vector2.h"
+#include "util/intervalthread.h"
 #include "view/view_port.h"
 
 /**
@@ -17,32 +18,22 @@ struct View {
     SDL_Window *window;
     // Renderer used to clear, draw and render the screen.
     SDL_Renderer *renderer;
-    // View mutex, to prevent data access during drawing, or concurrent drawing.
-    SDL_mutex *mutex;
-    // Thread drawing to the window.
-    SDL_Thread *thread;
-    // Condition variable to force a draw from controller, and to wait on to 
-    // prevent continuous draw calls that are resource intensive.
-    SDL_cond *draw_condition;
     // The current view area of the model.
     ViewPort *port;
-    // SDL timer that calls a callback to notify draw_condition, to draw to the 
-    // window at a desired rate (60Hz).
-    SDL_TimerID framerate_control_timer;
-    // Timer that calls a callback to print how many frames have been rednered
-    // in the last second, and reset the fps counter.
-    SDL_TimerID fps_counter_timer;
-    // Frames per second, locked under View->mutex.
-    int fps;
-    // Mutex to stop the controller and view from accessing done concurrently.
-    SDL_mutex *done_mutex;
-    // Flag to indicate that the view thread should terminate.
-    bool done;
+    // Thread to update the screen with intermittently.
+    IntervalThread *thread;
+    // Mutex protecting concurrent access of view data.
+    SDL_mutex *mutex;
     // Function that can be binded to draw onto the window. Takes this view to
     // draw onto and a void* as the drawn data.
     void(*draw_function)(View*, void*);
     // Data to pass to draw_function.
     void *data;
+    // Timer that calls a callback to print how many frames have been rednered
+    // in the last second, and reset the fps counter.
+    SDL_TimerID fps_counter_timer;
+    // Frames per second, locked under View->mutex.
+    int fps;
 };
 
 /**
@@ -71,29 +62,7 @@ View *view_create(
  * 
  * @param data Pointer to buffer (View object) to pass to the thread function.
  */
-int view_thread(void *data);
-
-/**
- * Signals the view thread to draw onto the window, if it is waiting to draw.
- * 
- * @param view The view to signal to draw.
- */
-void view_notify(View *view);
-
-/**
- * Checks if the current view has exited. 
- * 
- * Thread safe. 
- * 
- * @return If the view should be exited.
- */
-bool view_done(View *view);
-
-/**
- * Callback to pass to an internal SDL timer to notify the view to draw every
- * given number of milliseconds.
- */
-uint32_t view_notify_callback(uint32_t interval, void *data);
+void view_draw(void *data);
 
 /**
  * Callback to pass to an internal SDL timer (that calls this each second) to
@@ -127,7 +96,7 @@ void view_move(View *view, Direction direction, bool state);
  * @param view Pointer to the view to set the position.
  * @param pos The coordinate to set the position to.
  */
-void view_set_position(View *view, Vector2 pos);
+void view_set_position(View *view, Vector pos);
 
 /**
  * Draw a grid in the world space.

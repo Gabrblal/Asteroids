@@ -6,7 +6,7 @@
 #include "SDL2/SDL.h"
 #include "view/view.h"
 #include "model/model.h"
-#include "util/vector2.h"
+#include "util/vector.h"
 
 /**
  * @struct Controller
@@ -51,9 +51,9 @@ Controller *controller_create()
     }
 
     ViewPort *port = view_port_create(
-        (Vector2){0.0, 0.0},
-        (Vector2){2.0, 2.0},
-        (Vector2){WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2},
+        (Vector){0.0, 0.0},
+        (Vector){2.0, 2.0},
+        (Vector){WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2},
         0.1,
         3
     );

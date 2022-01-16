@@ -4,13 +4,6 @@
 #include <string.h>
 #include <stdint.h>
 
-struct Array {
-    void *buffer;
-    size_t size;
-    size_t length;
-    size_t capacity;
-};
-
 Array *array_create(size_t size)
 {
     assert(size > 0);
@@ -264,6 +257,10 @@ void array_apply(Array *array, ArrayApplyFunction func, void *data)
 void array_clear(Array *array)
 {
     free(array->buffer);
+
+    array->buffer = NULL;
+    array->length = 0;
+    array->capacity = 0;
 }
 
 void array_destroy(Array *array)
