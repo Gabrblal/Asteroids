@@ -54,6 +54,20 @@ static inline Vector vector_mul(Vector a, Vector b)
 }
 
 /** 
+ * Scale a vector.
+ * 
+ * @param a First vector.
+ * @param m The magnitude to scale by..
+ * 
+ * @return The scaled vector.
+ */
+static inline Vector vector_scale(Vector a, double m)
+{
+    Vector c = {a.x * m, a.y * m};
+    return c;
+}
+
+/** 
  * Divide two vectors.
  * 
  * @param a First vector.
