@@ -21,6 +21,8 @@ Model *model_create();
  */
 void model_increment(void *model);
 
+void model_pause_toggle(Model *model);
+
 /**
  * Draw the model object to a renderer.
  * 

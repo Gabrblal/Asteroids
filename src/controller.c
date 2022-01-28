@@ -167,6 +167,7 @@ void controller_handle_key_down(Controller *controller, SDL_Event *event)
         case SDLK_LEFT:  view_move(controller->view, DIRECTION_WEST,  true); break;
         case SDLK_e:     view_move(controller->view, DIRECTION_IN,    true); break;
         case SDLK_q:     view_move(controller->view, DIRECTION_OUT,   true); break;
+        case SDLK_SPACE: model_pause_toggle(controller->model); break;
         case SDLK_ESCAPE: controller->done = true;
         default: break;
     }
