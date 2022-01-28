@@ -2,7 +2,6 @@
 
 #include <assert.h>
 #include <string.h>
-#include <stdint.h>
 
 Array *array_create(size_t size)
 {
@@ -20,6 +19,29 @@ Array *array_create(size_t size)
     array->capacity = 0;
 
     return array;
+}
+
+Array *array_create_from_array(Array *array)
+{
+    Array *new = array_create(array->size);
+    if (!new)
+        return NULL;
+
+    // Set the size of the new array.
+    new->size = array->size;
+
+    // Allocate enough space for the length of passed array.
+    if (!array_allocate(new, array->length)) {
+        free(new);
+        return NULL;
+    }
+
+    new->length = array->length;
+
+    // Copy over the data.
+    memcpy(new->buffer, array->buffer, array->size * array->length);
+
+    return new;
 }
 
 void array_reduce(Array *array)
@@ -76,7 +98,7 @@ bool array_allocate(Array *array, int n)
     return true;
 }
 
-bool array_at(Array *array, int index, void **element)
+bool array_at_pointer(Array *array, int index, void **element)
 {
     // Ensure the index is in range.
     if (!array || index < 0 || index >= array->length)
@@ -84,6 +106,17 @@ bool array_at(Array *array, int index, void **element)
 
     // Set the pointer to point to the provided element at the index.
     *element = (uint8_t*)array->buffer + array->size * index;
+
+    return true;
+}
+
+bool array_at_copy(Array *array, int index, void *element)
+{
+    // Ensure the index is in range.
+    if (!array || index < 0 || index >= array->length)
+        return false;
+
+    memcpy(element, (uint8_t*)array->buffer + array->size * index, array->size);
 
     return true;
 }
