@@ -18,7 +18,7 @@ Array *polygon_create_random_regular(double radius)
         return NULL;
 
     // The number of verticies.
-    int n = random_int(3, 10);
+    int n = random_int(3, 5);
 
     // The angle between each vertex.
     double d = 2 * M_PI / n;
@@ -35,8 +35,14 @@ Array *polygon_create_random_regular(double radius)
     return polygon;
 }
 
-bool polygon_axes_shadow_overlap(Vector *A, Vector *B, int N, int M)
-{
+bool polygon_axes_shadow_overlap(
+    Vector *A,
+    Vector *B,
+    int N,
+    int M,
+    double *minimum_overlap,
+    Vector *minimum_axis
+) {
     // Get the edge coordinates of polygon A.
     Vector a = *A;
     for (int i = 0; i < N; i++) {
@@ -60,7 +66,7 @@ bool polygon_axes_shadow_overlap(Vector *A, Vector *B, int N, int M)
         // The shadow of polygon B.
         double B_max = vector_dot(axis, *B);
         double B_min = B_max;
-        for (int j = 1; j < N; j++) {
+        for (int j = 1; j < M; j++) {
             double projection = vector_dot(axis, *(B + j));
             if (projection > B_max)
                 B_max = projection;
@@ -68,8 +74,18 @@ bool polygon_axes_shadow_overlap(Vector *A, Vector *B, int N, int M)
                 B_min = projection;
         }
 
-        if (B_min > A_max || B_max < A_min)
+        if (B_min > A_max || B_max < A_min) {
             return false;
+        }
+        else {
+
+            // Calculate the overlap
+            double overlap = B_min < A_min ? A_min - B_min : A_max - B_min;
+            if (overlap < *minimum_overlap) {
+                *minimum_overlap = overlap;
+                *minimum_axis = axis;
+            }
+        }
 
         a = b;
     }
@@ -77,8 +93,12 @@ bool polygon_axes_shadow_overlap(Vector *A, Vector *B, int N, int M)
     return true;
 }
 
-bool polygon_colliding(Array *polygon_A, Array *polygon_B, bool *colliding)
-{
+bool polygon_colliding(
+    Array *polygon_A,
+    Array *polygon_B,
+    bool *colliding,
+    Vector *mtv
+) {
     // This algorithm takes the line segments of polygon A, and projects
     // the shadow of polygon B onto that line. If the shadow of B doesn't
     // overlap with the line segment of A, then the polygons are not colliding.
@@ -97,10 +117,20 @@ bool polygon_colliding(Array *polygon_A, Array *polygon_B, bool *colliding)
     if (N < 3 || M < 3)
         return false;
 
+    double overlap_A, overlap_B;
+    Vector axis_A, axis_B;
+
     *colliding = (
-        polygon_axes_shadow_overlap(A, B, N, M) &&
-        polygon_axes_shadow_overlap(B, A, N, M)
+        polygon_axes_shadow_overlap(A, B, N, M, &overlap_A, &axis_A) &&
+        polygon_axes_shadow_overlap(B, A, M, N, &overlap_B, &axis_B)
     );
+
+    if (*colliding) {
+        if (overlap_A < overlap_B)
+            *mtv = vector_scale(axis_A, overlap_A);
+        else
+            *mtv = vector_scale(axis_B, overlap_B);
+    }
 
     return true;
 }

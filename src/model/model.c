@@ -8,17 +8,20 @@
 #include "util/array.h"
 #include "util/random.h"
 #include "util/vector.h"
+#include "util/time.h"
 #include "util/intervalthread.h"
-#include "model/polygon.h"
+#include "model/asteroid.h"
 
 /**
  * Struct containing Model control related data.
  */
 struct Model {
-    Array *polygons;
+    Array *asteroids;
     Array *colliding;
+    Time time_last;
     SDL_mutex *mutex;
     IntervalThread *thread;
+    bool paused;
 };
 
 Model *model_create()
@@ -31,35 +34,39 @@ Model *model_create()
     if (!model)
         return NULL;
 
-    Array *polygons = array_create(sizeof(Array));
+    Array *asteroids = array_create(sizeof(Asteroid*));
     Array *colliding = array_create(sizeof(bool));
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 10; ++i) {
 
-        // Create a random polygon.
-        Array *polygon = polygon_create_random_regular(1.0);
+        // Create an asteroid at a random location.
+        Asteroid *asteroid = asteroid_create();
+        asteroid->object->position = (Vector){
+            random_double(-5, 5),
+            random_double(-5, 5)
+        };
 
-        Vector position = {random_double(-5, 5), random_double(-5, 5)};
-        for (int i = 0; i < array_length(polygon); i++) {
+        asteroid->object->velocity = (Vector){
+            random_double(-0.03, 0.03),
+            random_double(-0.03, 0.03)
+        };
 
-            // Get the vertex.
-            Vector *p = NULL;
-            array_at(polygon, i, (void*)&p);
+        asteroid->object->omega = random_double(-0.03, 0.03);
 
-            // Offset the vertex by the position.
-            *p = vector_add(*p, position);
-        }
+        // Add it to the array of asteroids.
+        array_push_back(asteroids, (void*)&asteroid);
 
-        array_push_back(polygons, polygon);
-
+        // Initially set to not colliding.
         bool t = false;
         array_push_back(colliding, &t);
     }
 
-    model->polygons = polygons;
+    model->asteroids = asteroids;
     model->colliding = colliding;
+    model->time_last = time_global();
+    model->paused = false;
     model->mutex = SDL_CreateMutex();
-    model->thread = interval_thread_create(model_increment, model, 7);
+    model->thread = interval_thread_create(model_increment, model, 7, "Model");
 
     return model;
 }
@@ -71,12 +78,40 @@ void model_increment(void *data)
     // Lock access to the model data and advance the model.
     SDL_LockMutex(model->mutex);
 
-    Array *polygons = array_data(model->polygons);
-    bool *colliding = array_data(model->colliding);
-    int n = array_length(model->polygons);
+    Time elapsed_ms = time_since_last(&model->time_last);
+
+    int n = array_length(model->asteroids);
 
     for (int i = 0; i < n; i++) {
-        Array *A = polygons + i;
+
+        Asteroid *asteroid = *(Asteroid**)array_get(model->asteroids, i);
+
+        if (!model->paused)
+            asteroid_advance(asteroid, (double)elapsed_ms / 1000);
+
+        if (asteroid->object->position.x < -5)
+            asteroid->object->velocity.x *= -1.0;
+
+        if (asteroid->object->position.x > 5)
+            asteroid->object->velocity.x *= -1.0;
+
+        if (asteroid->object->position.y < -5)
+            asteroid->object->velocity.y *= -1.0;
+
+        if (asteroid->object->position.y > 5)
+            asteroid->object->velocity.y *= -1.0;
+    }
+
+    // Determine collisions.
+    for (int i = 0; i < n; i++)
+        *(bool*)array_get(model->colliding, i) = false;
+
+    for (int i = 0; i < n; i++) {
+
+        if (*(bool*)array_get(model->colliding, i))
+            continue;
+
+        Asteroid *A = *(Asteroid**)array_get(model->asteroids, i);
 
         for (int j = 0; j < n; j++) {
 
@@ -84,22 +119,26 @@ void model_increment(void *data)
             if (i == j)
                 continue;
 
-            Array *B = polygons + j;
+            Asteroid *B = *(Asteroid**)array_get(model->asteroids, j);
 
-            bool is_colliding = false;
-            polygon_colliding(A, B, &is_colliding);
+            bool collision = false;
+            Vector mtv;
+            polygon_colliding(A->verticies, B->verticies, &collision, &mtv);
 
-            *(colliding + i) |= is_colliding;
+            if (collision) {
+                *(bool*)array_get(model->colliding, i) = true;
+                *(bool*)array_get(model->colliding, j) = true;
+            }
         }
     }
 
     SDL_UnlockMutex(model->mutex);
 }
 
-void model_apply(Model *model, void(*func)(void*, void*), void *data)
+void model_pause_toggle(Model *model)
 {
     SDL_LockMutex(model->mutex);
-    func(model, data);
+    model->paused = !model->paused;
     SDL_UnlockMutex(model->mutex);
 }
 
@@ -110,13 +149,13 @@ void model_draw_polygon(
     Vector *a = NULL;
     Vector *b = NULL;
 
-    if (!array_at(polygon, 0, (void*)&a))
+    if (!array_at_pointer(polygon, 0, (void*)&a))
         return;
 
     for (int i = 0; i < array_length(polygon); i++) {
 
         // Get the second coordinate.
-        if (!array_at(polygon, (i + 1) % array_length(polygon), (void*)&b))
+        if (!array_at_pointer(polygon, (i + 1) % array_length(polygon), (void*)&b))
             return;
 
         Vector a_pixel = view_world_to_port(view->port, *a);
@@ -140,21 +179,22 @@ void model_draw(View *view, void *data)
     SDL_LockMutex(model->mutex);
 
     // Dereference required data once.
-    Array *polygons = model->polygons;
+    Asteroid **asteroids = array_data(model->asteroids);
+    int n = array_length(model->asteroids);
 
     // Set to white lines.
     SDL_SetRenderDrawColor(view->renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
 
     // For each polygon.
-    for (int i = 0; i < array_length(polygons); ++i) {
-        // Get the polygon.
-        Array *polygon = NULL;
-        array_at(polygons, i, (void*)&polygon);
+    for (int i = 0; i < n; ++i) {
 
-        bool *colliding = NULL;
-        array_at(model->colliding, i, (void*)&colliding);
+        Asteroid *asteroid = *(asteroids + i);
+        Array *polygon = asteroid->verticies;
 
-        if (*colliding)
+        bool colliding;
+        array_at_copy(model->colliding, i, (void*)&colliding);
+
+        if (colliding)
             SDL_SetRenderDrawColor(view->renderer, 255, 0, 0, 255);
         else
             SDL_SetRenderDrawColor(view->renderer, 255, 255, 255, 255);
@@ -170,19 +210,19 @@ void model_destroy(Model *model)
 {
     interval_thread_destroy(model->thread);
 
+    Asteroid **asteroids = array_data(model->asteroids);
+    int n = array_length(model->asteroids);
+
     // Destroy the polygons.
-    for (int i = 0; i < array_length(model->polygons); i++) {
-        Array *polygon = NULL;
-
-        if (!array_at(model->polygons, 0, (void*)&polygon))
-            break;
-
-        free(polygon);
+    for (int i = 0; i < n; i++) {
+        asteroid_destroy(*(asteroids + i));
     }
 
     // Deallocate the arrays.
-    array_destroy(model->polygons);
+    array_destroy(model->asteroids);
     array_destroy(model->colliding);
+
+    SDL_DestroyMutex(model->mutex);
 
     free(model);
 }

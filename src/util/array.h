@@ -2,6 +2,7 @@
 #define ARRAY_H
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 typedef struct {
@@ -20,6 +21,14 @@ typedef struct {
 Array *array_create(size_t size);
 
 /**
+ * Create an array from another array by copying.
+ * 
+ * @param array The array to copy.
+ * @returns A copy of the passed array on success, or NULL on failure.
+ */
+Array *array_create_from_array(Array *array);
+
+/**
  * Allocate space in the array. Useful for preallocating space when a number of
  * elements are known to be added to reduce system memory allocation
  * calls.
@@ -36,19 +45,46 @@ Array *array_create(size_t size);
 bool array_allocate(Array *array, int n);
 
 /**
- * Get an element from the array at the provided index, and assign it to
- * the provided element pointer.
+ * Get a pointer to an element from the array at the provided index, and assign
+ * it to the provided element pointer.
  * 
- * Does bounds checking.
+ * Performs bounds checking.
  * 
  * @param array The array to index.
- * @param index The index of the array
- * @param element Pointer to an array element, to set to the element at the
- * provided index in the array on success, or NULL on out of bounds.
+ * @param index The index into the array
+ * @param element Pointer to an array element pointer, to set to the element at
+ * the provided index in the array on success, or NULL on out of bounds.
  * 
  * @returns True on success, false on out of bounds error or failure.
  */
-bool array_at(Array *array, int index, void **element);
+bool array_at_pointer(Array *array, int index, void **element);
+
+/**
+ * Copy an element from the array at the provided index into the destination
+ * at the provided pointer.
+ * 
+ * Performs bounds checking.
+ * 
+ * @param array The array to index.
+ * @param index The index into the array.
+ * @param element Pointer to an array element to copy the array element into.
+ * 
+ * @returns True on success, false on out of bounds error or failure.
+ */
+bool array_at_copy(Array *array, int index, void *element);
+
+/**
+ * Get a pointer to an element from the array at the provided index without
+ * bounds checking.
+ * 
+ * @param array The array to index.
+ * @param index The index into the array.
+ * 
+ * @returns A pointer to the element at the provided index.
+ */
+static inline void *array_get(Array *array, int index) {
+    return (uint8_t*)array->buffer + array->size * index;
+}
 
 /**
  * Get the element at the front / start of an array.
