@@ -2,6 +2,7 @@
 #define INTERVAL_THREAD_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct IntervalThread IntervalThread;
 
@@ -14,13 +15,15 @@ typedef struct IntervalThread IntervalThread;
  * 
  * @param interval The number of milliseconds between each function call.
  * @param func The function to call every interval.
+ * @param name An optional name for the thread.
  * 
  * @returns A pointer to the interval thread.
  */
 IntervalThread *interval_thread_create(
     void(*func)(void *data),
     void *data,
-    int interval
+    uint32_t interval,
+    const char *name
 );
 
 /**

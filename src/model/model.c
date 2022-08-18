@@ -65,10 +65,8 @@ Model *model_create()
     model->colliding = colliding;
     model->time_last = time_global();
     model->paused = false;
-
     model->mutex = SDL_CreateMutex();
-
-    model->thread = interval_thread_create(model_increment, model, 7);
+    model->thread = interval_thread_create(model_increment, model, 7, "Model");
 
     return model;
 }

@@ -41,7 +41,7 @@ View *view_create(
     view->fps_counter_timer = SDL_AddTimer(1000, view_fps_counter_callback, view);
 
     // Start the view thread.
-    view->thread = interval_thread_create(view_draw, view, 7);
+    view->thread = interval_thread_create(view_draw, view, 7, "View");
 
     return view;
 }
